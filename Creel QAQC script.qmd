@@ -3,7 +3,7 @@
 # USER INPUTS - CHECK EACH SESSION #
 # SELECT "Render" ABOVE TO PRODUCE REPORT #
 params:
-  fishery_name: "Quillayute fall salmon 2024"
+  fishery_name: "Satsop salmon 2024-25"
   na_concerns: ["target_species", "trip_status", "boat_type", "fishing_end_time", "boat_used", "effort_start_time", "interview_time", "trailer_count, fish_from_boat"]
 # optional: previously_interviewed and fish_from_boat
 # -------------------------------- #
