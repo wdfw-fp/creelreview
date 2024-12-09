@@ -7,9 +7,8 @@ params:
   na_concerns: ["target_species", "trip_status", "boat_type", "fishing_end_time", "boat_used", "effort_start_time", "interview_time", "trailer_count, fish_from_boat"]
 # optional: previously_interviewed and fish_from_boat
 # -------------------------------- #
-title: "Creel Data QAQC Report v2.1"
+title: "Creel Data QAQC Report"
 subtitle: "Freshwater Recreational Fisheries Management Unit, WDFW"
-author: Colt Holley
 date: last-modified
 execute:
   echo: false
@@ -28,6 +27,8 @@ format:
       margin-width: 400px
       gutter-width: 1.5rem
 ---
+
+**Fishery Name:** **<span style="color: red;">`r params$fishery_name`</span>**
 
 This Quarto document is a tool for Washington Department of Fish and Wildlife (WDFW) staff within the Freshwater Recreational Fisheries Management (FRFM) work unit to perform quality assurance and quality control (QAQC) checks on angler catch and effort data obtained through creel surveys. It may be used in-season during the review of recently collected data or as a companion document to the fw_creel.Rmd analysis located at the [CreelEstimates](https://github.com/wdfw-fp/CreelEstimates) Github repository.
 
@@ -213,7 +214,7 @@ generate_na_summary <- function(dwg, params) {
 
 ```{r fetch_data}
 #import data using fishery_name param
-dwg <- fetch_dwg(params$fishery_name)
+dwg <- CreelEstimateR::fetch_dwg(params$fishery_name)
 
 #add FishApps creel_event_id URLs
 dwg$effort <- dwg$effort %>%
