@@ -1,0 +1,20 @@
+project:
+  type: default
+  output-dir: reports
+
+execute:
+  echo: false
+  warning: false
+
+format: 
+  html:
+    theme: litera
+    toc: true
+    number-sections: false
+    page-layout: article
+    embed-resources: true
+    grid:
+      sidebar-width: 200px
+      body-width: 1200px
+      margin-width: 400px
+      gutter-width: 1.5rem

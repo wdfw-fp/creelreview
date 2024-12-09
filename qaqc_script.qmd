@@ -1,0 +1,974 @@
+---
+title: "Creel Data QAQC Report"
+subtitle: "Freshwater Recreational Fisheries Management Unit, WDFW"
+date: last-modified
+params:
+  fishery_name: "Default"
+  na_concerns: ["target_species", "trip_status", "boat_type", "fishing_end_time", "boat_used", "effort_start_time", "interview_time", "trailer_count, fish_from_boat"]
+# optional: previously_interviewed and fish_from_boat
+
+---
+
+**Fishery Name:** **<span style="color: red;">`r params$fishery_name`</span>**
+
+This Quarto document is a tool for Washington Department of Fish and Wildlife (WDFW) staff within the Freshwater Recreational Fisheries Management (FRFM) work unit to perform quality assurance and quality control (QAQC) checks on angler catch and effort data obtained through creel surveys. It may be used in-season during the review of recently collected data or as a companion document to the fw_creel.Rmd analysis located at the [CreelEstimates](https://github.com/wdfw-fp/CreelEstimates) Github repository.
+
+# Instructions
+
+Review content of the tables and figures below to perform quality assurance checks on collected creel data. Look for outlier observations, deviations from study design, impossible or unexpected values, etc.
+
+Many of the QAQC tables in this document contain a `creel_event_id` and/or `fishapps_event_link` field and corresponding values. These are provided to help users locate the specific data entry in the creel database. Upon reviewing the summaries in this document and identifying any necessary updates to the data entries, edits can be easily made in FishApps using the following instructions.
+
+1.  Log into [FishApps](https://apps.wdfw-fish.us/auth).
+
+2.  From this document, select either a `creel_event_id` or `fishapps_event_link` and copy to clipboard.
+
+3.  Paste onto browser tab with open FishApps session (method will be standardized).
+
+    -   If using whole link, paste the copied `fishapps_event_link`.
+
+    -   If using event_id, navigate to any event by using the "Search" feature in FishApps. Open an event and then paste over the `event_id` after "<https://apps.wdfw-fish.us/creel/creel_event/>" in the URL so that the event_id copied from the QAQC document creates a new link. Press enter to navigate to the event in question using the authenticated FishApps session.
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(fig.width = 10, fig.height = 8)
+
+#load packages and install if necessary
+pacman::p_load(tidyverse, here, gt, DataExplorer, cowplot, htmltools, install = TRUE)
+
+library(CreelEstimateR) #https://github.com/cbedwards-dfw/CreelEstimateR
+
+# 
+# #load QAQC functions
+# purrr::walk(list.files(here("R_functions/QAQC"), full.names = TRUE), source)
+# 
+# #establish fishery-specific sub-folders as necessary. Copies templates into new folders.
+# establish_dir(params) # !! off during development
+
+## !! temporarily making portable. No outsourced functions.
+```
+
+```{r func_make_hyperlink}
+# function to convert generated URL to hyperlink
+make_hyperlink <- function(myurl, mytext = myurl) {
+  paste('<a href="', myurl, '">', mytext, '</a>')
+}
+
+# make_copyable_hyperlink <- function(myurl, mytext = myurl, tooltip = "Click copy link!") {
+#   sprintf('<span class="copy-link" data-url="%s" contenteditable="true" style="cursor: pointer;" title="%s">%s</span>', myurl, tooltip, mytext)
+# }
+```
+
+```{r func_flag_qaqc}
+#function to highlight column on tables which flagged an issue in the data
+#example: hightlight_qaqc(no_end_time, "MISSING_end_time")
+flag_qaqc <- function(table, column_name) {
+  table <- table %>% 
+    tab_style(
+      style = cell_text(color = "red"),
+      locations = cells_body(columns = column_name)
+    ) %>%
+    tab_style(
+      style = cell_fill(color = "yellow"),
+      locations = cells_column_labels(columns = column_name)
+    ) 
+  return(table)
+}
+
+```
+
+## User-defined Parameters
+
+```{r}
+#  table of user-supplied parameters for the fishery to be quality checked
+tibble(Parameters = names(params), 
+       Value = as.character(params)
+       ) |>
+mutate(Parameters = case_when(
+    # Parameters == "project_name" ~ "Project Name",
+    Parameters == "fishery_name" ~ "Fishery Name",
+    # Parameters == "est_date_start" ~ "Start Date",
+    # Parameters == "est_date_end" ~ "End Date",
+    Parameters == "na_concerns" ~ "Fields where NA values are a concern",
+    TRUE ~ Parameters)
+    ) |> 
+gt()
+
+```
+
+```{r func_na_summary_table}
+# function to summarize the number of NAs within a creel dataset
+generate_na_summary <- function(dwg, params) {
+  
+  obj_names <- c("interview", "catch", "effort")
+  
+  ## Conditional fields ##
+  # calculated separately and rejoined later
+  
+    #boat_type conditional on boat_used = Yes
+    na_boat_type <- dwg$interview |> 
+      filter(boat_used == "Yes" & is.na(boat_type)) |>
+      summarise(`NA Count` = n(), .groups = "keep") |> 
+      mutate(Object = "interview", Column = "boat_type",
+             Percentage = round(`NA Count` / nrow(dwg$interview), 2)) #format for re-joining
+    
+    #fishing_end_time conditional on trip_status = Complete
+    na_fishing_end_time <- dwg$interview |> 
+      filter(trip_status == "Complete" & is.na(fishing_end_time)) |> 
+      summarise(`NA Count` = n()) |> 
+      mutate(Object = "interview", Column = "fishing_end_time",
+             Percentage = round(`NA Count` / nrow(dwg$interview), 2)) #format for re-joining
+    
+    #fish_from_boat conditional on boat_used = Yes
+    na_fish_from_boat <- dwg$interview |> 
+      filter(boat_used == "Yes" & is.na(fish_from_boat)) |> 
+      summarise(`NA Count` = n()) |> 
+      mutate(Object = "interview", Column = "fish_from_boat",
+             Percentage = round(`NA Count` / nrow(dwg$interview), 2)) #format for re-joining
+  
+  #move column so its next to boat_type later
+  dwg$interview <- dwg$interview %>% 
+    relocate(boat_used, .after = last_col())
+  
+  #internal function to summarize NAs within data across interviews, catch, and effort
+  process_object <- function(dwg, obj_name) {
+    na_summary <- dwg[[obj_name]] %>%
+      summarise_all(.funs = list(
+        ~sum(is.na(.))
+          )) %>%
+      pivot_longer(everything(), names_to = "Column", values_to = "NA Count") %>%
+      filter(`NA Count` > 0) %>% 
+      mutate(Object = obj_name,
+             Percentage = round(`NA Count` / nrow(dwg[[obj_name]]), 2)
+             )
+    
+    return(na_summary)
+  }
+  
+  #apply function to objects in data list
+  result_list <- map(obj_names, ~process_object(dwg, .))
+  
+  #remove existing rows from conditional fields (not true NA count)
+  result_list <- result_list %>% 
+    map(~filter(.x, !(Object == "interview" & Column %in% c("boat_type", "fishing_end_time", "fish_from_boat"))
+                )
+        )
+  
+  #combine results with conditional variables
+  if (na_boat_type$`NA Count` > 0) {
+   result_list <- append(result_list, list(na_boat_type))
+  }
+  
+  if (na_fishing_end_time$`NA Count` > 0) {
+    result_list <- append(result_list, list(na_fishing_end_time))
+  }
+  
+  if (na_fish_from_boat$`NA Count` > 0) {
+    result_list <- append(result_list, list(na_fish_from_boat))
+  }
+  
+  #hide columns where NAs aren't necessarily a bad thing / are always blank
+  hidden_cols <- c("state_residence", "interview_location", "location_season_name", "indirect_census_bank", "direct_census_bank", "no_count_reason", "comments", "location_season_name", "p_census_bank", "p_census_boat", "indirect_census_bank", "direct_census_bank", "run", "sex", "angler_type", "previously interviewed", "comment_txt", "effort_end_time")
+  
+  #hide columns
+  na_summary_table <- bind_rows(result_list) %>% 
+    filter(!Column %in% hidden_cols)
+  
+  #create table
+  na_summary_table <- na_summary_table %>% 
+    gt(groupname_col = "Object",
+       row_group_as_column = TRUE) %>%
+    tab_header(title = "NA Summary Table",
+               subtitle = params$fishery_name) %>%
+    tab_stubhead(label = "Category") %>% 
+    fmt_percent(columns = Percentage, decimals = 1, drop_trailing_zeros = TRUE)
+  
+  #return summary table and conditional fields for later use
+  return(list(na_summary_table = na_summary_table, 
+              na_boat_type = na_boat_type,
+              na_fish_from_boat = na_fish_from_boat,
+              na_fishing_end_time = na_fishing_end_time))
+}
+
+```
+
+```{r fetch_data}
+#import data using fishery_name param
+dwg <- CreelEstimateR::fetch_dwg(params$fishery_name)
+
+#add FishApps creel_event_id URLs
+dwg$effort <- dwg$effort %>%
+  mutate(fishapps_event_link = paste0("https://apps.wdfw-fish.us/creel/creel_event/", creel_event_id))
+
+dwg$interview <- dwg$interview %>% 
+  mutate(fishapps_event_link = paste0("https://apps.wdfw-fish.us/creel/creel_event/", creel_event_id))
+
+##for catch, add creel_event_id by interview_id and filter to rows with catch_id
+dwg$catch <- dwg$interview %>% 
+  select(creel_event_id, interview_id) %>%
+  left_join(dwg$catch, by = "interview_id") %>% 
+  filter(!is.na(catch_id)) %>% 
+  mutate(fishapps_event_link = paste0("https://apps.wdfw-fish.us/creel/creel_event/", creel_event_id))
+
+# #add FishApps creel_event_id URLs and format for HTML & JS function
+# dwg$effort <- dwg$effort %>%
+#   mutate(fishapps_event_link = paste0("https://apps.wdfw-fish.us/creel/creel_event/", creel_event_id),
+#          fishapps_event_link = make_copyable_hyperlink(fishapps_event_link),
+#          fishapps_event_link = map(fishapps_event_link, gt::html))
+# 
+# dwg$interview <- dwg$interview %>% 
+#   mutate(fishapps_event_link = paste0("https://apps.wdfw-fish.us/creel/creel_event/", creel_event_id),
+#          fishapps_event_link = make_copyable_hyperlink(fishapps_event_link),
+#          fishapps_event_link = map(fishapps_event_link, gt::html))
+# 
+# ##for catch, add creel_event_id by interview_id and filter to rows with catch_id
+# dwg$catch <- dwg$interview %>% 
+#   select(creel_event_id, interview_id) %>%
+#   left_join(dwg$catch, by = "interview_id") %>% 
+#   filter(!is.na(catch_id)) %>% 
+#   mutate(fishapps_event_link = paste0("https://apps.wdfw-fish.us/creel/creel_event/", creel_event_id),
+#          fishapps_event_link = make_copyable_hyperlink(fishapps_event_link),
+#          fishapps_event_link = map(fishapps_event_link, gt::html))
+
+```
+
+# Overview
+
+## Missing values
+
+This table summarizes the number of NA values within the creel data. Some columns have been hidden where many NA values are not unexpected or do not cause a potential error. The first panel in the tabset below shows the summary table and the second tab shows individual tables, where the first column is the variable of interest, to aid locating specific records in FishApps. There are three conditional variables, "boat_type", "fish_from_boat", and "fishing_end_time", which will always produce tables if any rows are present, regardless of being in the `params$na_concerns` list. This is because of how they are calculated. Fish_from_boat may not be a concern for your specific creel project.
+
+::: callout-note
+Tables for additional fields of interest with NA values can be produced by entering the field name into the `na_concerns` list parameter at the beginning of the script and rendering again.
+:::
+
+::: panel-tabset
+## [Summary]{style="color:red; font-size:20px;"}
+
+```{r na_summary_table}
+#this chunk plots the dynamic NA table
+
+#use function to produce NA table
+na_summary <- generate_na_summary(dwg, params)
+
+#extract column names
+na_colnames_list <- na_summary$na_summary_table$`_data`$Column
+
+#extract rows to flag from params$na_concerns that exist in na_colnames_list
+rows_to_flag <- params$na_concerns[params$na_concerns %in% na_colnames_list]
+
+#vector of row numbers to color from rows_to_flag that exist in table
+rows_to_color <- which(na_summary$na_summary_table$`_data`$Column %in% rows_to_flag)
+
+#apply conditional coloring only to rows that are present in both params$na_concerns and na_colnames_list
+if (length(rows_to_flag) > 0) {
+  na_summary$na_summary_table <- na_summary$na_summary_table %>% 
+    data_color(columns = "Column", rows = rows_to_color, palette = "orange")
+}
+
+na_summary$na_summary_table
+```
+
+## [Tables]{style="color:red; font-size:20px;"}
+
+::: {.scroll-container style="overflow-y: auto; height: 600px;"}
+```{r na_summary_table2}
+#this chunk identifies rows of the NA summary table that need tables produced
+
+#get list of na_concern variables to produce tables for
+subset_list <- na_summary$na_summary_table$`_data` |> 
+  filter(Column %in% rows_to_flag) |> 
+  select(Column, Object)
+
+# #conditional variables cannot be included in subset_list, so consider them here
+# if (na_summary$na_boat_type$`NA Count` > 0) {
+#   subset_list <- add_row(subset_list, Column = "boat_type", Object = "interview")
+# }
+
+#function to create an NA table for each variable called
+na_var_table <- function(data, column_name, columns_to_select = NULL, conditional = NULL) {
+
+  filtered_data <- filter(data, is.na(!!rlang::sym(column_name)))
+  
+  if (nrow(filtered_data) == 0) {
+    
+    cat("There are no rows with missing '", column_name, "'.", sep = "")
+    
+  } else {
+    columns_to_select <- intersect(columns_to_select, names(filtered_data)) 
+    
+    select_columns <- c(column_name, columns_to_select)
+    
+    filtered_data %>%
+      select(any_of(select_columns))
+  }
+}
+```
+
+```{r na_summary_table3}
+#this chunk dynamically selects columns for NA tables and calls the table function for each row of subset_list
+
+#initialize objects
+columns_to_select <- NULL
+output_list <- list()
+
+# Loop through each row in subset_list and call na_var_table function
+for (i in seq_len(nrow(subset_list))) {
+  column_name <- subset_list$Column[i]
+  object <- subset_list$Object[i]
+  
+  #define columns_to_select based on object value
+  if (object == "interview") {
+    columns_to_select <- c("event_date", "water_body", "section_num", "interview_number", "creel_event_id")
+  } else if (object == "catch") {
+    columns_to_select <- c("event_date", "water_body", "section_num", "interview_number", "creel_event_id")
+  } else if (object == "effort") {
+    columns_to_select <- c("event_date", "water_body", "count_type", "count_sequence", "creel_event_id")
+  }
+  
+  # #calculate tables for conditional fields
+  # if (na_summary$na_boat_type$`NA Count` > 0 && column_name == "boat_type") {
+  #   
+  #   
+  # temp_boat_type <- dwg$interview |> 
+  #   filter(boat_used == "Yes" & is.na(boat_type)) |> 
+  #   select("boat_type", "event_date", "water_body", "section_num", "interview_number", "creel_event_id")
+  
+  # output <- na_var_table(data = NULL, column_name, columns_to_select, conditional = temp_boat_type)
+  
+  # }
+  #call na_var_table function with appropriate arguments
+  output <- na_var_table(data = dwg[[object]], column_name, columns_to_select)
+  
+  #store the outputs
+  output_list[[i]] <- output
+}
+
+```
+
+```{r na_summary_table4, results='asis'}
+#this chunk plots the tables with formatting for the report
+
+#loop through outputs and print tables for necessary
+for (i in seq_along(output_list)) {
+  #each table has its own vertical scroll
+  cat('<div class="scroll-container" style="overflow-y: auto; max-height: 300px;">\n')
+  
+  output_list[[i]] |> gt() |> print()
+  
+  cat('</div>\n')
+  cat('<div style="height: 20px;"></div>\n') # add spacing
+}
+
+```
+
+```{r na_summary_table5}
+#this chunk plots the conditional fields as tables if any cases exist. This could probably be incorporated into na_var_table() but this was much simpler.
+
+#tables of conditional fields with NA values
+if (na_summary$na_boat_type$`NA Count` > 0) {
+  dwg$interview |> 
+    filter(boat_used == "Yes" & is.na(boat_type)) |>
+    select("boat_type", "event_date", "water_body", "section_num", "interview_number", "creel_event_id") |> 
+    gt()
+}
+
+if (na_summary$na_fish_from_boat$`NA Count` > 0) {
+  dwg$interview |> 
+    filter(boat_used == "Yes" & is.na(fish_from_boat)) |> 
+    select("fish_from_boat", "event_date", "water_body", "section_num", "interview_number", "creel_event_id") |> 
+    gt()
+}
+
+if (na_summary$na_fishing_end_time$`NA Count` > 0) {
+  dwg$interview |> 
+    filter(trip_status == "Complete" & is.na(fishing_end_time)) |> 
+    select("fish_from_boat", "event_date", "water_body", "section_num", "interview_number", "creel_event_id") |> 
+    gt()
+}
+```
+:::
+:::
+
+# Effort
+
+## Census Counts
+
+```{r num_census_dates}
+num_census_dates <- dwg$effort %>% filter(tie_in_indicator==1) %>% select(event_date) %>% distinct()
+num_census_dates <- nrow(num_census_dates)
+```
+
+Table of recorded census effort count dates for the `r params$fishery_name` fishery. There have been [`r num_census_dates`]{style="color:red;"} census effort count surveys to-date.
+
+::: {.scroll-container style="overflow-y: auto; max-height: 400px;"}
+```{r census_count_summary}
+#produce a table of census effort count dates
+census_dates <- dwg$effort %>% 
+  filter(tie_in_indicator == 1) %>% 
+  select(event_date, section_num, effort_start_time, effort_end_time) %>%
+  distinct()
+
+if (nrow(census_dates) > 0) {
+census_dates %>%
+  mutate(duration = paste((effort_end_time - effort_start_time)/60, "min")) %>% 
+  arrange(event_date, effort_start_time) %>% 
+  group_by(event_date) %>%
+  gt(row_group_as_column = TRUE) %>% 
+  tab_stubhead(label = "Survey Date") %>%
+  tab_header(title = "Census Effort Counts") %>% 
+  tab_style(
+    style = list(cell_text(align = "center")),
+    locations = cells_body()
+    ) %>%
+    cols_label(
+      effort_start_time = "Start Time",
+      effort_end_time = "End Time",
+      section_num = "Section Number",
+      duration = "Duration"
+      )
+}
+```
+:::
+
+## Index Counts
+
+::: {.scroll-container style="overflow-y: auto; max-height: 400px;"}
+```{r missing_index_sites, results='asis'}
+#sites visited
+surveyed_index_sites <- dwg$effort |>
+  filter(location_type == "Site") |>
+  select(event_date, section_num, location) |>
+  distinct()
+
+#study design
+expected_index_sites <- dwg$fishery_manager |>
+  filter(location_type == "Site") |>
+  group_by(section_num, location_code) |>
+  summarize()
+
+#expand expected list by surveyed dates
+expected_index_sites_dates <- surveyed_index_sites |>
+  distinct(event_date) |>
+  cross_join(expected_index_sites) |>
+  select(section_num, location_code, event_date)
+
+# Perform anti-join to identify missing index sites
+missing_index_sites <- anti_join(expected_index_sites_dates, surveyed_index_sites, by = c("location_code" = "location", "section_num", "event_date"))
+
+# If there are missing sites, create a summary table
+if (nrow(missing_index_sites) > 0) {
+  missing_index_sites_summary <- missing_index_sites |>
+    group_by(section_num, location_code) |>
+    summarize(min_date = min(event_date),
+              max_date = max(event_date),  
+              num_dates_missed = n())  |>
+    ungroup()
+
+  # Plot summary table
+  missing_index_sites_summary |> 
+    gt() |>
+    tab_header("Summary of index sites missing from effort count data") |>
+    tab_spanner(label = "Survey dates missed",
+                columns = c("min_date", "max_date", "num_dates_missed")) |> 
+    cols_label(
+      section_num = "Section number",
+      location_code = "Site name",
+      min_date = "First",
+      max_date = "Most recent",
+      num_dates_missed = "Number"
+    ) |> 
+    cols_align(
+      align = "center",
+      columns = everything()
+    )
+} else {
+  cat("There are no index sites missing from effort count data.<br>","*This requires correct setup of Fishery Manager Table on FishApps with project study design.*") 
+  }
+```
+:::
+
+```{r effort_index_count_plots}
+#Number of index effort counts performed per shift by section and surveyor.
+#index effort counts per shift by surveyor
+# fig_index_counts <- dwg$effort %>%
+#   filter(survey_type == "Index") %>%
+#   group_by(event_date, surveyor_num, count_sequence, section_num, count_type) %>%
+#   summarise(num_events = n(), .groups = "keep")
+# 
+# #plot
+# fig_index_counts %>%
+#   ggplot(aes(x = event_date, y = count_sequence, fill = count_type)) +
+#   geom_bar(stat = "identity", width = 1, color = "black") + #for outline
+#   geom_bar(stat = "identity", width = 1) +
+#   facet_grid(section_num ~ surveyor_num, 
+#              scales = "free_y", switch = "y", labeller = label_both) +
+#   labs(x = "Event Date", y = "Effort Count Total") +
+#   theme_bw() +
+#   theme(strip.text.x = element_text(
+#           size = 8, color = "black", face = "bold.italic"),
+#         strip.text.y = element_text(
+#           size = 8, color = "black", face = "bold.italic")
+#         )
+# 
+# ### could calculate deviation from neighbors and print table of output
+
+#Look for unexpected deviations from study design. The y-axes in this plot sum the number of sites among n-numbered index effort counts per day.
+```
+
+### Effort End Time \< Start Time
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r}
+filtered_data <- dwg$effort %>%
+  filter(effort_end_time < effort_start_time) %>%
+  select(event_date, water_body, location, count_sequence, count_type, location_type, section_num, fishapps_event_link) %>% 
+  mutate(QAQC_check = "FAIL") %>% 
+  relocate(QAQC_check)
+
+if (nrow(filtered_data) > 0) {
+  foo <- filtered_data %>% 
+    gt()
+  
+  foo <- flag_qaqc(foo, "QAQC_check")
+  foo
+} else {
+  cat("There are no effort counts where end time < start time.")
+}
+
+```
+:::
+
+### Number of Index Sites Counted per Section
+
+#### By section number and surveyor number
+
+Vertical dashed lines indicate census effort count dates.
+
+```{r}
+#plot
+dwg$effort %>% 
+  filter(survey_type == "Index") %>% 
+  # select(event_date, section_num, surveyor_num) %>%
+  # group_by(event_date, section_num) %>% 
+  # mutate(count = n()) %>% 
+  # ungroup() %>% 
+  ggplot(aes(x = as.Date(event_date))) +
+      geom_bar(position = "stack", color="black") +
+      geom_bar(position = "stack", fill="darkgrey") +
+      geom_vline(data = census_dates, aes(xintercept = as.Date(event_date)), linetype = "dashed", color = "red") +
+      facet_grid(section_num ~ surveyor_num, scales = "free_y", switch = "y", labeller = label_both) +
+      labs(x = "Event Date", y = "Total of index sites from all counts") +
+      scale_x_date(date_labels = "%m-%d", date_breaks = "1 week") +
+      theme_bw() +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1), legend.position = "none")
+
+```
+
+#### By section number and count sequence
+
+```{r}
+n_count_seq <- dwg$effort %>% 
+  filter(survey_type == "Index") %>% 
+  reframe(max = max(count_sequence))
+```
+
+Greatest number of recorded index effort counts within a day = [**`r n_count_seq`**]{style="color:red;"} .
+
+Histogram of index effort count sequence number.
+
+```{r fig.height=4, fig.width=4}
+dwg$effort %>% 
+  filter(survey_type == "Index") %>%
+  ggplot(aes(x = count_sequence)) +
+    geom_histogram() +
+    labs(y = "Number of index effort counts", x = "Index effort counts per day") +
+    theme_bw()
+```
+
+-   How does this align with expected number of index counts from the study design?
+
+-   If there are unexpected count sequences, where in the data are they located?
+
+```{r}
+#summarize sections 
+sections_sites <- dwg$fishery_manager |>
+  group_by(section_num) |> 
+  summarise(
+    num_index_sites = n_distinct(location_code) - 1 #remove section row itself from count
+  )
+
+sections_sites |> 
+  gt() |> 
+  tab_header("Section and Sites Summary", subtitle = "Study design from fishery manager table") |> 
+  cols_label(section_num = "Sections", num_index_sites = "Count of Index Sites") |> 
+  cols_align(align = "center", columns = everything())
+```
+
+To evaluate for missing index sites by section, multiply the count of index sites value in the table above by the number of index counts performed each day. For example, section 1 has 8 index sites and 2 index counts are performed each day; therefore, the expected number of index sites counter per day in section 1 is 16.
+
+```{r index_counts}
+#count of index sites visited per day (number * number of index counts)
+# total_index_count_n <- dwg$effort |> 
+#   group_by(water_body, event_date, section_num) |> 
+#   summarise(n = n() / 2) |>  #divided by 2 (trailer counts and vehicle counts)
+#   mutate(n = round(n, digits = 0)) |> 
+#   ungroup() |> 
+#   group_by(section_num) |> 
+#   summarise(max_count = max(n))
+
+#plot of index counts by section num and count seq
+dwg$effort |> 
+  filter(survey_type == "Index") |>  
+  ggplot(aes(x = as.Date(event_date))) +
+    geom_bar(position = "stack", color="black") +
+    geom_bar(position = "stack", fill="darkgrey") +
+    geom_vline(data = census_dates, aes(xintercept = as.Date(event_date)), linetype = "dashed", color = "red") +
+    # geom_hline(data = total_index_count_n, aes(yintercept = max_count), color = "blue", linetype = "dotted") +
+    facet_grid(section_num ~ count_sequence, scales = "free_y", switch = "y", labeller = label_both) +
+    labs(x = "Event Date", y = "Number of Index Sites Counted") +
+    scale_x_date(date_labels = "%m-%d", date_breaks = "1 week") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1), legend.position = "none")
+
+```
+
+::: {.scroll-container style="overflow-y: auto; max-height: 350px;"}
+```{r}
+#table sorted by descending count seq
+dwg$effort %>%
+  filter(survey_type == "Index") %>% 
+  select(event_date, water_body, project_name, fishery_name,
+         count_sequence, fishapps_event_link) %>% 
+  relocate(count_sequence) %>% 
+  arrange(desc(count_sequence)) %>% 
+  gt()
+  
+```
+:::
+
+# Interviews
+
+Example histograms of numeric variables within interview data. In most cases we would expect discrete values for these variables (e.g., whole numbers - 3 anglers, 5th interview, 4 fishing poles). This is a chance to view potential outliers or unexpected patterns within the interview data.
+
+::: panel-tabset
+## [Histograms]{style="color:red; font-size:20px;"}
+
+```{r}
+temp <- dwg$interview %>% 
+  select(angler_count, total_group_count,  pole_count, vehicle_count, trailer_count)
+
+DataExplorer::plot_histogram(temp, ncol = 2, ggtheme = theme_minimal())
+```
+
+## [Tables]{style="color:red; font-size:20px;"}
+
+::: {.scroll-container style="overflow-y: auto; max-height: 500px;"}
+```{r}
+#need to funcationalize this
+
+#angler count
+if (length(temp$angler_count) > 0) {
+  dwg$interview |> 
+    select(angler_count, interview_number, fishapps_event_link) |> 
+    arrange(desc(angler_count)) |> 
+    gt_preview() |> 
+    tab_header("Angler Count")
+}
+
+#total_group_count
+if (length(temp$total_group_count) > 0) {
+  dwg$interview |> 
+    select(total_group_count, interview_number, fishapps_event_link) |> 
+    arrange(desc(total_group_count)) |> 
+    gt_preview() |> 
+    tab_header("Total Group Count")
+}
+
+#pole_count
+if (length(temp$pole_count) > 0) {
+    dwg$interview |> 
+    select(pole_count, interview_number, fishapps_event_link) |> 
+    arrange(desc(pole_count)) |> 
+    gt_preview() |> 
+    tab_header("Pole Count")
+}
+
+#vehicle_count
+if (length(temp$vehicle_count) > 0) {
+    dwg$interview |> 
+    select(vehicle_count, interview_number, fishapps_event_link) |> 
+    arrange(desc(vehicle_count)) |> 
+    gt_preview() |> 
+    tab_header("Vehicle Count")
+}
+
+#trailer_count
+if (length(temp$trailer_count) > 0) {
+    dwg$interview |> 
+    select(trailer_count, interview_number, fishapps_event_link) |> 
+    arrange(desc(trailer_count)) |> 
+    gt_preview() |> 
+    tab_header("Trailer Count")
+}
+
+```
+:::
+:::
+
+## Incomplete Trip Status with Fishing End Time
+
+Table of interviews with a recorded 'fishing_end_time' but have a 'trip_status" as incomplete. All interviews with a 'fishing_end_time' are assumed to be completed trips.
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r trip status check}
+#select data
+foo <- dwg$interview %>%
+  filter(trip_status == "Incomplete" & !is.na(fishing_end_time))
+
+#generate table if QAQC check fails, print message otherwise
+if(nrow(foo) >= 1) {
+  foo <- dwg$interview %>%
+    filter(trip_status == "Incomplete" & !is.na(fishing_end_time)) %>%
+    select(event_date, water_body, project_name, interview_number, trip_status, fishing_start_time, fishing_end_time, creel_event_id, fishapps_event_link, interview_number) %>%
+    mutate(QAQC_check = "FAIL") %>%
+    relocate(QAQC_check, interview_number) %>%
+    gt()
+
+  foo <- flag_qaqc(foo, "QAQC_check")
+  foo
+  
+} else {
+  cat("There are no interviews with a 'fishing_end_time' value and an Incomplete 'trip_status'")
+}
+```
+:::
+
+## Missing Trip Status
+
+The table below contains interviews without a value for the column 'trip_status'. All interviews are expected to either have 'trip_status' of either "Complete" or "Incomplete".
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r no_trip_status_full}
+#check if any trip_status values are blank
+foo <- dwg$interview %>%
+  filter(is.na(trip_status))
+
+#show table or print message
+if (nrow(foo) >= 1) {
+  foo <- dwg$interview %>%
+    filter(is.na(trip_status)) %>% 
+    select(event_date, water_body, interview_number,trip_status, fishing_start_time, fishing_end_time, interview_time, fishapps_event_link) %>% 
+    mutate(QAQC_check = "FAIL") %>% 
+    relocate(QAQC_check) %>%
+    gt()
+  
+  foo <- flag_qaqc(foo, "QAQC_check")
+  foo
+  
+} else {
+  cat("There are no interviews with missing 'trip_status' values.")
+}
+```
+:::
+
+## Fishing End Time \> Interview Time
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r}
+filtered_data <- dwg$interview %>%
+  filter(fishing_end_time > interview_time) %>% 
+  mutate(QAQC_check = "FAIL") %>% 
+  relocate(QAQC_check)
+
+if (nrow(filtered_data) > 0) {
+  foo <- filtered_data %>% 
+    select(QAQC_check, event_date, water_body, interview_number, fishing_end_time, interview_time, fishapps_event_link) %>%
+    gt()
+  
+  foo <- flag_qaqc(foo, "QAQC_check")
+  foo
+} else {
+  cat("There are no interviews where fishing end time > interview time.")
+}
+```
+:::
+
+## Fishing Start Time \> Fishing End Time
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r}
+filtered_data <- dwg$interview %>%
+  filter(fishing_start_time > fishing_end_time) %>% 
+    mutate(QAQC_check = "FAIL") %>%
+    relocate(QAQC_check)
+
+if (nrow(filtered_data) > 0) {
+  foo <- filtered_data %>% 
+    select(QAQC_check, event_date, water_body, interview_number, fishing_start_time, fishing_end_time, fishapps_event_link) %>% 
+    gt()
+  
+  foo <- flag_qaqc(foo, "QAQC_check")
+  foo
+} else {
+  cat("There are no interviews where fishing start time > fishing end time.")
+}
+```
+:::
+
+## Trailer Count \> Vehicle Count
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r}
+filtered_data <- dwg$interview %>%
+  filter(trailer_count > vehicle_count) %>% 
+  mutate(QAQC_check = "FAIL") %>%
+  relocate(QAQC_check)
+
+if (nrow(filtered_data) > 0) {
+  foo <- filtered_data %>% 
+    select(QAQC_check, event_date, water_body, interview_number, trailer_count, vehicle_count, fishapps_event_link) %>% 
+    gt()
+  
+  foo <- flag_qaqc(foo, "QAQC_check")
+  foo
+} else {
+  cat("There are no interviews where trailer count > vehicle count.")
+}
+```
+:::
+
+## Angler Count \> Group Count
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r}
+filtered_data <- dwg$interview %>%
+  filter(angler_count > total_group_count) %>% 
+    mutate(QAQC_check = "FAIL") %>%
+    relocate(QAQC_check)
+
+if (nrow(filtered_data) > 0) {
+  foo <- filtered_data %>% 
+    select(QAQC_check, event_date, water_body, interview_number, angler_count, total_group_count, fishapps_event_link) %>% 
+    gt()
+  
+  foo <- flag_qaqc(foo, "QAQC_check")
+  foo
+} else {
+  cat("There are no interviews where anger count > total group count.")
+}
+```
+:::
+
+## Vehicle count \> Group Count
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r}
+filtered_data <- dwg$interview %>%
+  filter(vehicle_count > total_group_count) %>% 
+    mutate(QAQC_check = "FAIL") %>%
+    relocate(QAQC_check)
+
+if (nrow(filtered_data) > 0) {
+  foo <- filtered_data %>% 
+    select(QAQC_check, event_date, water_body, interview_number, vehicle_count, total_group_count, fishapps_event_link) %>% 
+    gt() 
+  
+  foo <- flag_qaqc(foo, "QAQC_check")
+  foo
+} else {
+  cat("There are no interviews where vehicle count > total group count.")
+}
+```
+:::
+
+# Catch
+
+::: panel-tabset
+## [Bar plots]{style="color:red; font-size:20px;"}
+
+::: {.scroll-container style="overflow-y: auto; max-height: 600px;"}
+```{r catch_bar_plot1, fig.width=5, fig.height=5}
+#Bar plots
+temp <- dwg$catch |> 
+  select(-c(creel_event_id, interview_id, catch_id, fishapps_event_link))
+
+DataExplorer::plot_bar(temp, ncol = 1)
+
+```
+
+Bar plots of each column within the catch table, grouped by "**fin_mark**". The horizontal axis represents a proportion.
+
+```{r catch_bar_plot2, fig.width=5, fig.height=5}
+#Bar plots
+DataExplorer::plot_bar(temp, ncol = 1, by = "fin_mark") 
+```
+
+Bar plots of each column within the catch table, grouped by "**fate**". The horizontal axis represents a proportion.
+
+```{r catch_bar_plot3}
+#Bar plots
+DataExplorer::plot_bar(temp, ncol = 1, by = "fate")
+```
+:::
+
+## [Tables]{style="color:red; font-size:20px;"}
+
+Look for categorical values that do not belong.
+
+```{r}
+dwg$catch |> select(species) |> distinct() |> gt()
+
+dwg$catch |> select(life_stage) |> distinct() |> gt()
+
+dwg$catch |> select(fin_mark) |> distinct() |> gt()
+
+# dwg$catch |> select(fate)> distint() |> gt()
+```
+:::
+
+## Histogram of fish_count
+
+Look for [red]{style="color:red;"} values as potential outliers in number of fish reported in interviews.
+
+```{r, fig.width=8, fig.height=10}
+#calculate the max
+peak_value <- dwg$catch %>% 
+  count(fish_count) %>% 
+  arrange(desc(n)) %>% 
+  first()
+
+threshold <- 5 #need to make this more robust. IQR, 2x SD, etc
+
+#identify values outside the threshold
+foo <- dwg$catch %>%
+  mutate(far_from_peak = 
+           ifelse(fish_count > peak_value$fish_count * threshold,
+                  as.character(fish_count), NA))
+
+#calc for histogram
+frequency_data <- foo %>%
+  count(species, fish_count, far_from_peak)
+
+# Plot manual histogram using geom_col
+fish_count_plot <- ggplot() +
+  geom_col(data = frequency_data, aes(x = fish_count, y = n), color = "black", fill = "blue") +
+  geom_text(data = frequency_data, aes(x = fish_count, y = after_stat(count)), 
+            vjust = -0.5, color = "red", size = 5, label = frequency_data$far_from_peak, stat = "count") +
+  facet_wrap(~species, ncol = 2, scales = "free") +
+  theme_classic() +
+  labs(y = "Frequency", x = "Fish Count")
+  
+fish_count_plot
+```
+
+Table of fish_count, sorted from high to low.
+
+::: {.scroll-container style="overflow-y: auto; max-height: 250px;"}
+```{r}
+foo %>%
+  filter(!is.na(far_from_peak)) %>%
+  select(species, life_stage, fin_mark, fate, fish_count, fishapps_event_link) %>%
+  arrange(desc(fish_count)) %>% 
+  gt()
+```
+:::
