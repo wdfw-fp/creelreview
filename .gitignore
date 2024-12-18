@@ -36,3 +36,5 @@ rsconnect/
 
 # HTML outputs of QAQC script
 /reports/
+
+/.quarto/
