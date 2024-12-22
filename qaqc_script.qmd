@@ -19,32 +19,33 @@ Review content of the tables and figures below to perform quality assurance chec
 
 Many of the QAQC tables in this document contain a `creel_event_id` and/or `fishapps_event_link` field and corresponding values. These are provided to help users locate the specific data entry in the creel database. Upon reviewing the summaries in this document and identifying any necessary updates to the data entries, edits can be easily made in FishApps using the following instructions.
 
-1.  Log into [FishApps](https://apps.wdfw-fish.us/auth).
+1.  Log into [FishApps](https://apps.wdfw-fish.us/auth) in your preferred browser.
 
-2.  From this document, select either a `creel_event_id` or `fishapps_event_link` and copy to clipboard.
+2.  For a given Event that you want to access on the Creel App, select the `fishapps_event_link` and copy to clipboard.
 
-3.  Paste onto browser tab with open FishApps session (method will be standardized).
-
-    -   If using whole link, paste the copied `fishapps_event_link`.
-
-    -   If using event_id, navigate to any event by using the "Search" feature in FishApps. Open an event and then paste over the `event_id` after "<https://apps.wdfw-fish.us/creel/creel_event/>" in the URL so that the event_id copied from the QAQC document creates a new link. Press enter to navigate to the event in question using the authenticated FishApps session.
+3.  Paste the `fishapps_event_link` onto your browser tab with an open FishApps session (this circumvents a permissions issue).
 
 ```{r setup, echo=FALSE}
 knitr::opts_chunk$set(fig.width = 10, fig.height = 8)
 
-#load packages and install if necessary
-pacman::p_load(tidyverse, here, gt, DataExplorer, cowplot, htmltools, install = TRUE)
+package_list <- c(
+  "tidyverse",
+  "here",
+  "gt",
+  "DataExplorer",
+  "cowplot",
+  "htmltools"
+)
 
-library(CreelEstimateR) #https://github.com/cbedwards-dfw/CreelEstimateR
+#load packages and install if necessary
+xfun::pkg_attach(package_list, install = TRUE)
+
+#devtools::install_github("cbedwards-dfw/CreelEstimateR")
+library(CreelEstimateR)
 
 # 
 # #load QAQC functions
-# purrr::walk(list.files(here("R_functions/QAQC"), full.names = TRUE), source)
-# 
-# #establish fishery-specific sub-folders as necessary. Copies templates into new folders.
-# establish_dir(params) # !! off during development
-
-## !! temporarily making portable. No outsourced functions.
+# purrr::walk(list.files(here("R_functions/"), full.names = TRUE), source)
 ```
 
 ```{r func_make_hyperlink}
