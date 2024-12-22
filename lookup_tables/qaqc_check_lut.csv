@@ -1,0 +1,6 @@
+﻿qaqc_check_type,output,output desc
+error - anomalous or impossible values,data - row,filtered row with added qaqc_check field 
+error - missing values,data - row,filtered row with added qaqc_check field 
+test for outliers,plot,plot to aid in visual review of data
+data summary,data - summary table,data table containing summary statistics of the data
+summary plot,plot,plot of summary data to aid in visual review of data
