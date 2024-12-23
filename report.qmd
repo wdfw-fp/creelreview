@@ -20,11 +20,10 @@ library(CreelDataQAQC)  # Load the package
 fishery_name <- params$fishery_name
 cat("Running QAQC for", fishery_name, "\n")
 
+# Ensure that CreelEstimateR is loaded before rendering
+devtools::install_github("cbedwards-dfw/CreelEstimateR")
 
 data <- CreelEstimateR::fetch_dwg(params$fishery_name)
-
-
-
 
 # Run checks and get grading  
 results <- CreelDataQAQC::run_all_checks(data)
