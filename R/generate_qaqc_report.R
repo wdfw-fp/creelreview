@@ -38,6 +38,9 @@ generate_qaqc_report <- function(fishery_names, output_dir = NULL) {
     safe_name <- gsub(" ", "-", fishery_name)
     output_file <- paste0("qaqc_report_", safe_name, "_", Sys.Date(), ".html")
 
+    # Full output path
+    output_path <- file.path(output_dir, output_file)
+
     #Render Quarto document
     system(paste("quarto render", shQuote(quarto_file),
                  "--to html",
