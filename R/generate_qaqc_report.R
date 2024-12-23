@@ -39,13 +39,19 @@ generate_qaqc_report <- function(fishery_names, output_dir = NULL) {
     output_file <- paste0("qaqc_report_", safe_name, "_", Sys.Date(), ".html")
 
     #Render Quarto document
-    system(paste("quarto render", quarto_file,
+    system(paste("quarto render", shQuote(quarto_file),
                  "--to html",
-                 paste0("--output ", shQuote(output_file)),
-                 paste0("--output-dir ", shQuote(output_dir)),
+                 paste0("--output ", shQuote(output_path)),
                  paste0("-P fishery_name=", shQuote(fishery_name))
-                 )
-           )
+    ))
+
+    # system(paste("quarto render", quarto_file,
+    #              "--to html",
+    #              paste0("--output ", shQuote(output_file)),
+    #              paste0("--output-dir ", shQuote(output_dir)),
+    #              paste0("-P fishery_name=", shQuote(fishery_name))
+    #              )
+    #        )
 
     #print message
     cat("Rendered report for", fishery_name, "->", file.path(output_dir, output_file), "\n")
