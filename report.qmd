@@ -1,0 +1,44 @@
+---
+title: "QAQC Report"
+output: html_document
+params:
+  fishery_name: "default_fishery"
+---
+
+```{r}
+library(dplyr)
+library(cli)
+library(glue)
+library(gt)
+
+# Ensure that CreelDataQAQC is loaded before rendering
+if (!requireNamespace("CreelDataQAQC", quietly = TRUE)) {
+  devtools::install_github("wdfw-fp/CreelDataQAQC")  # Install if necessary
+}
+library(CreelDataQAQC)  # Load the package
+
+cli::cli_alert_info(glue::glue("Starting report generation for {params$fishery_name}...\n"))
+
+fishery_name <- params$fishery_name
+cat("Running QAQC for", fishery_name, "\n")
+
+
+data <- CreelEstimateR::fetch_dwg(params$fishery_name)
+
+
+
+
+# Run checks and get grading  
+results <- CreelDataQAQC::run_all_checks(data)
+grading <- CreelDataQAQCget_grading(results)
+
+# Display results in a table
+results |> 
+  gt::gt()
+
+# Display overall grade
+grading$overall_grade
+
+#call
+# quarto::quarto_render("report.qmd")
+```

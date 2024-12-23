@@ -38,3 +38,4 @@ rsconnect/
 /reports/
 
 /.quarto/
+.Rproj.user

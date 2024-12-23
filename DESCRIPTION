@@ -1,0 +1,21 @@
+Package: CreelDataQAQC
+Title: Quality Assurance/Quality Control (QAQC) Review for Freshwater Creel Data
+Version: 0.0.0.9000
+Authors@R: 
+    person("Colt", "Holley",
+    email = "colt.holley@dfw.wa.gov", 
+    role = c("aut", "cre"),
+    comment = c(ORCID = "0000-0003-4172-4331")
+    )
+Description: placeholder text.
+License: GPL-3 + file LICENSE
+Depends:
+    R (>= 4.0)
+Imports:
+    cli,
+    dplyr
+Suggests:
+    tibble
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
