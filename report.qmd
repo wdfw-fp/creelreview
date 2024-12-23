@@ -30,10 +30,10 @@ data <- CreelEstimateR::fetch_dwg(params$fishery_name)
 
 # Run checks and get grading  
 results <- CreelDataQAQC::run_all_checks(data)
-grading <- CreelDataQAQCget_grading(results)
+grading <- CreelDataQAQC::get_grading(results)
 
 # Display results in a table
-results |> 
+results |> #results returned from run_all_checks
   gt::gt()
 
 # Display overall grade
