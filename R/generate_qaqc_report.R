@@ -20,6 +20,9 @@ generate_qaqc_report <- function(fishery_names) {
 
   #Loop through each fishery and render report
   for (fishery_name in fishery_names) {
+
+    cli::cli_alert_info(glue::glue("Starting report generation for {fishery_name}...\n"))
+
     #Define output file name
     safe_name <- gsub(" ", "-", fishery_name)
     output_file <- paste0("qaqc_report_", safe_name, "_", Sys.Date(), ".html")

@@ -17,8 +17,6 @@ if (!requireNamespace("CreelDataQAQC", quietly = TRUE)) {
 }
 library(CreelDataQAQC)  # Load the package
 
-cli::cli_alert_info(glue::glue("Starting report generation for {params$fishery_name}...\n"))
-
 fishery_name <- params$fishery_name
 cat("Running QAQC for", fishery_name, "\n")
 
