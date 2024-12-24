@@ -1,12 +1,12 @@
 project:
   type: default
-  output-dir: reports
+  output-dir: CreelDataQAQC_reports
 
 execute:
   echo: false
   warning: false
 
-format: 
+format:
   html:
     theme: litera
     toc: true

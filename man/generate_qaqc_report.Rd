@@ -2,16 +2,31 @@
 % Please edit documentation in R/generate_qaqc_report.R
 \name{generate_qaqc_report}
 \alias{generate_qaqc_report}
-\title{generate_qaqc_report}
+\title{Generate QAQC Reports}
 \usage{
-generate_qaqc_report(fishery_names)
+generate_qaqc_report(fishery_names, output_dir = NULL)
 }
 \arguments{
-\item{fishery_names}{input vector of freshwater creel fishery_names}
+\item{fishery_names}{A character vector of freshwater creel fishery names.}
+
+\item{output_dir}{An optional custom output directory for the reports. If not provided,
+the reports are saved to the default directory.}
 }
 \value{
-HTML QAQC report for each fishery
+Generates and saves HTML QAQC reports. No value is returned.
 }
 \description{
-generate_qaqc_report
+This function generates HTML QAQC reports for specified freshwater creel fisheries
+and saves them to a designated directory. By default, reports are saved to
+a folder named "CreelDataQAQC_reports" in the current working directory.
+}
+\examples{
+\dontrun{
+# Default usage: saves reports in the current working directory
+generate_qaqc_report(c("Fishery A", "Fishery B"))
+
+# Custom output directory
+custom_dir <- file.path("myfilepath/")
+generate_qaqc_report(c("Fishery A", "Fishery B"), output_dir = custom_dir)
+}
 }

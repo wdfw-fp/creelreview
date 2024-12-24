@@ -11,14 +11,14 @@ interview_missing.trip.status <- function(data) {
     cli::cli_alert_danger("Interview missing trip_status")
     return(list(
       pass = FALSE,
-      message = paste("test"),
+      message = paste("At least one interview is missing a 'trip_status'."),
       critical = FALSE
     ))
   } else {
     cli::cli_alert_success("There are no interviews with missing trip_status")
     return(list(
       pass = TRUE,
-      message = paste("test"),
+      message = paste("There are no interviews with missing 'trip_status'."),
       critical = FALSE
     ))
   }
