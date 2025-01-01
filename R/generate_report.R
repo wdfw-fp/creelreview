@@ -1,6 +1,6 @@
 #' Generate QAQC report
 #'
-#' This function generates HTML QAQC reports for specificed freshwater creel fisheries
+#' This function generates HTML QAQC reports for specified freshwater creel fisheries
 #' and saves them to a specified directory. By default, the reports are saved to a
 #' directory called "CreelDataQAQC_reports" in the current working directory.
 #'
@@ -9,10 +9,11 @@
 #' @importFrom glue glue
 #' @importFrom cli cli_alert_info
 #' @importFrom quarto quarto_render
+#' @importFrom here here
 #' @returns HTML QAQC report for each fishery
 #' @examples
 #' \dontrun{
-#' # Default useage: saves report to current working directory
+#' # Default usage: saves report to current working directory
 #' generate_report(c("Fishery A", "Fishery B"))
 #'
 #' # Custom output directory
@@ -20,10 +21,6 @@
 #' }
 #' @export
 generate_report <- function(fishery_names, output_dir = NULL) {
-
-#This file is the top level script used to produce QAQC reports.
-#Define the fisheries you want to generate reports for
-#then run this script to call Quarto and produce the HTML outputs.
 
   #default output location
   if (is.null(output_dir)) {
@@ -37,13 +34,12 @@ generate_report <- function(fishery_names, output_dir = NULL) {
     dir.create(output_dir, recursive = TRUE)
   }
 
-  #paths to quarto config and qaqc report file in inst/
-  quarto_config <- system.file("_quarto.yml", package = "CreelDataQAQC")
-  quarto_file <- system.file("rmarkdown", "report.qmd", package = "CreelDataQAQC")
+  #path to QAQC report file in inst/rmarkdown/
+  quarto_file <- here("qaqc_script.qmd")
 
   # Check if the file is found
   if (quarto_file == "") {
-    stop("report.qmd not found in inst/rmarkdown/.")
+    stop(paste(quarto_file, "not found in inst/rmarkdown/."))
   }
 
   #Loop through each fishery and render report
@@ -78,7 +74,27 @@ generate_report <- function(fishery_names, output_dir = NULL) {
       file.remove(output_file)
     }
 
+    #call helper function to remove figures from inst/figures between each loop
+    cleanup_figures()
+
     #print message
-    cat("Rendered report for", fishery_name, "\n")
+    cli_alert_success(glue::glue("Rendered report for {fishery_name} to:\n{final_output_file}\n\n\n"))
+  }
+}
+
+#' cleanup_figures
+#'
+#' This is a helper function that removes all files from the inst/figures directory.
+#' As the html reports have embeded resources, this is useful for cleaning up the
+#' figures directory between each sequential report iteration.
+#' @importFrom here here
+cleanup_figures <- function() {
+  figures_path <- paste0(here("inst", "figures"), "/")
+
+  figure_files <- list.files(figures_path, full.names = TRUE)
+
+  if (length(figure_files) > 0) {
+    file.remove(figure_files)
+
   }
 }

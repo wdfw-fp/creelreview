@@ -7,7 +7,7 @@
 run_all_checks <- function(data) {
   # List of check functions
   checks <- list(
-    interview_missing.trip.status = CreelDataQAQC::interview_missing.trip.status(data)
+    interview_missing.trip.status = interview_missing.trip.status(data)
   )
 
   # Loop through checks and fill the results tibble

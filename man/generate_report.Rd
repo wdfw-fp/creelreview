@@ -15,13 +15,13 @@ generate_report(fishery_names, output_dir = NULL)
 HTML QAQC report for each fishery
 }
 \description{
-This function generates HTML QAQC reports for specificed freshwater creel fisheries
+This function generates HTML QAQC reports for specified freshwater creel fisheries
 and saves them to a specified directory. By default, the reports are saved to a
 directory called "CreelDataQAQC_reports" in the current working directory.
 }
 \examples{
 \dontrun{
-# Default useage: saves report to current working directory
+# Default usage: saves report to current working directory
 generate_report(c("Fishery A", "Fishery B"))
 
 # Custom output directory

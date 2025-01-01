@@ -6,7 +6,21 @@ params:
   fishery_name: "Default"
   na_concerns: ["target_species", "trip_status", "boat_type", "fishing_end_time", "boat_used", "effort_start_time", "interview_time", "trailer_count, fish_from_boat"]
 # optional: previously_interviewed and fish_from_boat
-
+execute:
+  echo: false
+  warning: false
+format:
+  html:
+    theme: litera
+    toc: true
+    number-sections: false
+    page-layout: article
+    embed-resources: true
+    grid:
+      sidebar-width: 200px
+      body-width: 1200px
+      margin-width: 400px
+      gutter-width: 1.5rem
 ---
 
 **Fishery Name:** **<span style="color: red;">`r params$fishery_name`</span>**
@@ -26,7 +40,6 @@ Many of the QAQC tables in this document contain a `creel_event_id` and/or `fish
 3.  Paste the `fishapps_event_link` onto your browser tab with an open FishApps session (this circumvents a permissions issue).
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(fig.width = 10, fig.height = 8)
 
 package_list <- c(
   "tidyverse",
@@ -43,9 +56,12 @@ xfun::pkg_attach(package_list, install = TRUE)
 #devtools::install_github("cbedwards-dfw/CreelEstimateR")
 library(CreelEstimateR)
 
-# 
-# #load QAQC functions
-# purrr::walk(list.files(here("R_functions/"), full.names = TRUE), source)
+knitr::opts_chunk$set(
+  fig.width = 10, 
+  fig.height = 8,
+  fig.path = "inst/figures/"
+  )
+
 ```
 
 ```{r func_make_hyperlink}
