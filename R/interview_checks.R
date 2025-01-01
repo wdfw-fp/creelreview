@@ -1,24 +1,18 @@
-#' interview_missing.trip.status
-#'
-#' @param data creel data set via CreelEstimateR::fetch_dwg(params$fishery_name)
-#'
-#' @returns PASS/FAIL with message and indication whether field is critical to estimation
-#' @export
 interview_missing.trip.status <- function(data) {
-  interview <- data$interview
 
-  if (any(is.na(interview$trip_status))) {
-    cli::cli_alert_danger("Interview missing trip_status")
-    return(list(
+  interview <- data$interview
+  missing_count <- sum(is.na(interview$trip_status))
+
+  if (missing_count > 0) {
+    return(tibble::tibble(
       pass = FALSE,
-      message = paste("test"),
+      message = glue::glue("There are {missing_count} missing trip statuses in the interviews."),
       critical = FALSE
     ))
   } else {
-    cli::cli_alert_success("There are no interviews with missing trip_status")
-    return(list(
+    return(tibble::tibble(
       pass = TRUE,
-      message = paste("test"),
+      message = "All trip statuses are present in the interviews.",
       critical = FALSE
     ))
   }

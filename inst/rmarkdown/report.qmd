@@ -11,17 +11,18 @@ library(cli)
 library(glue)
 library(gt)
 
-# Ensure that CreelDataQAQC is loaded before rendering
 if (!requireNamespace("CreelDataQAQC", quietly = TRUE)) {
-  devtools::install_github("wdfw-fp/CreelDataQAQC")  # Install if necessary
+  stop("Package 'CreelDataQAQC' is required but not installed.")
 }
-library(CreelDataQAQC)  # Load the package
+
+if (!requireNamespace("CreelEstimateR", quietly = TRUE)) {
+  stop("Package 'CreelEstimateR' is required but not installed.")
+}
+
 
 fishery_name <- params$fishery_name
 cat("Running QAQC for", fishery_name, "\n")
 
-# Ensure that CreelEstimateR is loaded before rendering
-devtools::install_github("cbedwards-dfw/CreelEstimateR")
 
 data <- CreelEstimateR::fetch_dwg(params$fishery_name)
 

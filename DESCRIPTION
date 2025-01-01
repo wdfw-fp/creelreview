@@ -13,9 +13,12 @@ Depends:
     R (>= 4.0)
 Imports:
     cli,
-    dplyr
-Suggests:
-    tibble
+    glue,
+    dplyr,
+    tibble,
+    quarto
+Remotes:
+    cbedwards-dfw/CreelEstimateR
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2

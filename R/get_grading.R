@@ -1,7 +1,8 @@
 #' get_grading
 #'
 #' @param results output of run_all_checks()
-#'
+#' @importFrom glue glue
+#' @importFrom cli cli_alert_info cli_alert_success
 #' @returns list of grading
 #' @export
 get_grading <- function(results) {
@@ -21,9 +22,9 @@ get_grading <- function(results) {
                           ifelse(critical_pass_rate >= 0.8, "B", "C"))
 
   # Print grading to console
-  cli::cli_alert_info(glue("Critical pass rate: {critical_pass_rate * 100}%"))
-  cli::cli_alert_info(glue("Non-critical pass rate: {non_critical_pass_rate * 100}%"))
-  cli::cli_alert_success(glue("Overall grade: {overall_grade}"))
+  cli_alert_info(glue("Critical pass rate: {critical_pass_rate * 100}%"))
+  cli_alert_info(glue("Non-critical pass rate: {non_critical_pass_rate * 100}%"))
+  cli_alert_success(glue("Overall grade: {overall_grade}"))
 
   list(
     critical_pass_rate = critical_pass_rate,

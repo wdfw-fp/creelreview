@@ -33,9 +33,7 @@ docs/
 po/*~
 # RStudio Connect folder
 rsconnect/
-
 # HTML outputs of QAQC script
-/reports/
-
+/CreelDataQAQC_reports/
 /.quarto/
 .Rproj.user

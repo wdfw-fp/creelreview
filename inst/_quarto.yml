@@ -1,12 +1,8 @@
-project:
-  type: default
-  output-dir: reports
-
 execute:
   echo: false
   warning: false
 
-format: 
+format:
   html:
     theme: litera
     toc: true
