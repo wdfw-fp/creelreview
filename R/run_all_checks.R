@@ -10,13 +10,27 @@ run_all_checks <- function(data) {
   results_list <- list()
 
   # List of check functions
+  # check_name = check_name allows names(check) on a list
   checks <- list(
-    #interview checks
-    interview_missing.trip.status = interview_missing.trip.status,
+
+    # interview_checks.R
+    interview_na.trip.status = interview_na.trip.status,
     interview_end.time.interview.time = interview_end.time.interview.time,
     interview_start.time.end.time = interview_start.time.end.time,
     interview_trailer.count.vehicle.count = interview_trailer.count.vehicle.count,
-    interview_angler.count.group.count = interview_angler.count.group.count
+    interview_angler.count.group.count = interview_angler.count.group.count,
+    interview_vehicle.count.group.count = interview_vehicle.count.group.count,
+    interview_na.previously.interviewed = interview_na.previously.interviewed,
+    interview_na.fishing.location = interview_na.fishing.location,
+    interview_incomplete.trip.fishing.end.time = interview_incomplete.trip.fishing.end.time,
+    interview_end.time.before.start.time = interview_end.time.before.start.time,
+    interview_interview.before.fishing.start.time = interview_interview.before.fishing.start.time,
+    interview_complete.trip.missing.end.time = interview_complete.trip.missing.end.time,
+    interview_na.target.species = interview_na.target.species,
+    interview_na.boat.used = interview_na.boat.used
+
+    # effort_checks.R
+
   )
 
   # Loop through checks and store results in the results list

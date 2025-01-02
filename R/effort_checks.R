@@ -1,0 +1,124 @@
+
+# > colnames(dwg$effort)
+# [1] "creel_event_id"       "event_date"           "water_body"           "project_name"
+# [5] "fishery_name"         "effort_event_id"      "location"             "location_id"
+# [9] "tie_in_indicator"     "count_sequence"       "effort_start_time"    "effort_end_time"
+# [13] "no_count_reason"      "comments"             "count_type"           "count_quantity"
+# [17] "location_type"        "survey_type"          "location_season_name" "section_num"
+# [21] "surveyor_num"         "p_census_bank"        "p_census_boat"        "indirect_census_bank"
+# [25] "direct_census_bank"
+
+# 1 - Effort end time > start time
+effort_end.time.start.time <- function(data) {
+
+  effort <- data$effort
+  error_count <- sum(effort$effort_end_time > effort$effort_start_time, na.rm = TRUE)
+
+  if (error_count > 0) {
+    return(create_results_table(
+      pass = FALSE,
+      critical = TRUE,
+      qaqc_check_type = "",
+      error_count = error_count,
+      message = glue::glue("There are {error_count} rows where the end time is greater than the start time.")
+    ))
+  } else {
+    return(create_results_table(
+      pass = TRUE,
+      critical = TRUE,
+      qaqc_check_type = "",
+      error_count = error_count,
+      message = "All end times are less than or equal to the start times."
+    ))
+  }
+}
+
+# 2 - Effort location is NULL or NA
+effort_na.location <- function(data) {
+
+  effort <- data$effort
+  error_count <- sum(is.na(effort$location) | effort$location == "", na.rm = TRUE)
+
+  if (error_count > 0) {
+    return(create_results_table(
+      pass = FALSE,
+      critical = TRUE,
+      qaqc_check_type = "",
+      error_count = error_count,
+      message = glue::glue("There are {error_count} rows where the location is NULL or NA.")
+    ))
+  } else {
+    return(create_results_table(
+      pass = TRUE,
+      critical = TRUE,
+      qaqc_check_type = "",
+      error_count = error_count,
+      message = "The 'locations' field has no missing values."
+    ))
+  }
+}
+
+# 3 - Effort count quantity is NULL or NA
+effort_na.count.quantity <- function(data) {
+
+  effort <- data$effort
+  error_count <- sum(is.na(effort$count_quantity) | effort$count_quantity == "", na.rm = TRUE)
+
+  if (error_count > 0) {
+    return(create_results_table(
+      pass = FALSE,
+      critical = TRUE,
+      qaqc_check_type = "",
+      error_count = error_count,
+      message = glue::glue("There are {error_count} rows where the count quantity is NULL or NA.")
+    ))
+  } else {
+    return(create_results_table(
+      pass = TRUE,
+      critical = TRUE,
+      qaqc_check_type = "",
+      error_count = error_count,
+      message = "The 'count_quantity' field has no missing values."
+    ))
+  }
+}
+
+# 4 - Effort count type is NULL or NA
+effort_na.count.type <- function(data) {
+
+  effort <- data$effort
+  error_count <- sum(is.na(effort$count_type) | effort$count_type == "", na.rm = TRUE)
+
+  if (error_count > 0) {
+    return(create_results_table(
+      pass = FALSE,
+      critical = TRUE,
+      qaqc_check_type = "",
+      error_count = error_count,
+      message = glue::glue("There are {error_count} rows where the count type is NULL or NA.")
+    ))
+  } else {
+    return(create_results_table(
+      pass = TRUE,
+      critical = TRUE,
+      qaqc_check_type = "",
+      error_count = error_count,
+      message = "The 'count_type' field has no missing values."
+    ))
+  }
+}
+
+# 5 - Interviews that occur between an index count start and stop time
+# violation of sampling assumption
+# effort_flag_progressive_counts <- function(data) {
+#
+#   interview <- data$interview |> dplyr::group_by(event_date)
+#   effort <- data$effort |> dplyr::group_by(event_date, count_sequence)
+#
+#   # Join interview and effort data based on event_date, and check for overlap in time
+#   interviews_between_index_counts <- interview |>
+#     dplyr::inner_join(effort, by = "event_date") |>
+#     dplyr::filter(interview_time >= effort$effort_start_time & interview_time <= effort$effort_end_time)
+#
+#   return(interviews_between_index_counts)
+# }
