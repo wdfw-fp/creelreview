@@ -1,42 +1,27 @@
 ---
 title: "QAQC Report"
-output: html_document
 params:
   fishery_name: "default_fishery"
 ---
 
-```{r}
+```{r, include=FALSE}
 library(dplyr)
 library(cli)
 library(glue)
 library(gt)
 
-if (!requireNamespace("CreelDataQAQC", quietly = TRUE)) {
-  stop("Package 'CreelDataQAQC' is required but not installed.")
-}
-
-if (!requireNamespace("CreelEstimateR", quietly = TRUE)) {
-  stop("Package 'CreelEstimateR' is required but not installed.")
-}
-
-
-fishery_name <- params$fishery_name
-cat("Running QAQC for", fishery_name, "\n")
-
-
+#download creel dataset
 data <- CreelEstimateR::fetch_dwg(params$fishery_name)
 
+```
+
+```{r}
 # Run checks and get grading  
 results <- CreelDataQAQC::run_all_checks(data)
 grading <- CreelDataQAQC::get_grading(results)
 
 # Display results in a table
-results |> #results returned from run_all_checks
-  gt::gt()
+results
 
-# Display overall grade
-grading$overall_grade
 
-#call
-# quarto::quarto_render("report.qmd")
 ```

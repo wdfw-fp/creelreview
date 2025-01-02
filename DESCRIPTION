@@ -17,7 +17,8 @@ Imports:
     dplyr,
     tibble,
     quarto,
-    here
+    here,
+    remotes
 Remotes:
     cbedwards-dfw/CreelEstimateR
 Encoding: UTF-8

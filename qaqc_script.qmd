@@ -47,21 +47,22 @@ package_list <- c(
   "gt",
   "DataExplorer",
   "cowplot",
-  "htmltools"
+  "htmltools",
+  "glue"
 )
 
 #load packages and install if necessary
 xfun::pkg_attach(package_list, install = TRUE)
 
-#devtools::install_github("cbedwards-dfw/CreelEstimateR")
-library(CreelEstimateR)
+# Install/Update the CreelDataQAQC package from GitHub
+#forcing update keeps users up-to-date with any new qaqc checks
+remotes::install_github("username/CreelDataQAQC", force = TRUE)
 
 knitr::opts_chunk$set(
   fig.width = 10, 
   fig.height = 8,
   fig.path = "inst/figures/"
   )
-
 ```
 
 ```{r func_make_hyperlink}
@@ -247,6 +248,12 @@ dwg$catch <- dwg$interview %>%
 #          fishapps_event_link = map(fishapps_event_link, gt::html))
 
 ```
+
+
+```{r}
+CreelDataQAQC::run_all_checks(data = dwg)
+```
+
 
 # Overview
 
