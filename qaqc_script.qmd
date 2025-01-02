@@ -48,15 +48,17 @@ package_list <- c(
   "DataExplorer",
   "cowplot",
   "htmltools",
-  "glue"
+  "glue",
+  "scales"
 )
 
 #load packages and install if necessary
 xfun::pkg_attach(package_list, install = TRUE)
 
 # Install/Update the CreelDataQAQC package from GitHub
+# Quarto environment requires it be installed locally
 #forcing update keeps users up-to-date with any new qaqc checks
-remotes::install_github("wdfw-fp/CreelDataQAQC", force = TRUE)
+invisible(remotes::install_github("wdfw-fp/CreelDataQAQC", force = TRUE, quiet = TRUE))
 
 knitr::opts_chunk$set(
   fig.width = 10, 
@@ -251,7 +253,23 @@ dwg$catch <- dwg$interview %>%
 
 
 ```{r}
-CreelDataQAQC::run_all_checks(data = dwg)
+results_table <- CreelDataQAQC::run_all_checks(data = dwg)
+
+results_table |> 
+  gt() |> 
+  tab_style(
+    style = cell_fill(color = "green"),  # Apply color green for rows with 'green' in status_color
+    locations = cells_body(rows = which(results_table$status_color == "green"), columns = "status_color")
+  ) |> 
+  tab_style(
+    style = cell_fill(color = "yellow"),  # Apply color yellow for rows with 'yellow' in status_color
+    locations = cells_body(rows = which(results_table$status_color == "yellow"), columns = "status_color")
+  ) |> 
+  tab_style(
+    style = cell_fill(color = "red"),  # Apply color red for rows with 'red' in status_color
+    locations = cells_body(rows = which(results_table$status_color == "red"), columns = "status_color")
+  )
+
 ```
 
 
