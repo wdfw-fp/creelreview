@@ -56,7 +56,7 @@ xfun::pkg_attach(package_list, install = TRUE)
 
 # Install/Update the CreelDataQAQC package from GitHub
 #forcing update keeps users up-to-date with any new qaqc checks
-remotes::install_github("username/CreelDataQAQC", force = TRUE)
+remotes::install_github("wdfw-fp/CreelDataQAQC", force = TRUE)
 
 knitr::opts_chunk$set(
   fig.width = 10, 
