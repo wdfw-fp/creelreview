@@ -8,7 +8,7 @@ interview_na.trip.status <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} missing trip statuses in the interviews.")
     ))
@@ -16,7 +16,7 @@ interview_na.trip.status <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All trip statuses are present in all interviews."
     ))
@@ -33,7 +33,7 @@ interview_end.time.interview.time <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews where the fishing end time is after the interview time.")
     ))
@@ -41,7 +41,7 @@ interview_end.time.interview.time <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All fishing end times are before the interview time."
     ))
@@ -58,7 +58,7 @@ interview_start.time.end.time <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews where the fishing start time is after the fishing end time.")
     ))
@@ -66,7 +66,7 @@ interview_start.time.end.time <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All fishing start times are before the fishing end time."
     ))
@@ -83,7 +83,7 @@ interview_trailer.count.vehicle.count <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews where the trailer count is greater than the vehicle count.")
     ))
@@ -91,7 +91,7 @@ interview_trailer.count.vehicle.count <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All trailer counts are less than or equal to the vehicle count."
     ))
@@ -108,7 +108,7 @@ interview_angler.count.group.count <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews where the angler count is greater than the group count.")
     ))
@@ -116,7 +116,7 @@ interview_angler.count.group.count <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All angler counts are less than or equal to the group count."
     ))
@@ -133,7 +133,7 @@ interview_vehicle.count.group.count <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews where the vehicle count is greater than the group count.")
     ))
@@ -141,7 +141,7 @@ interview_vehicle.count.group.count <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All vehicle counts are less than or equal to the group count."
     ))
@@ -158,7 +158,7 @@ interview_na.previously.interviewed <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} missing values in the previously_interviewed column.")
     ))
@@ -166,7 +166,7 @@ interview_na.previously.interviewed <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All previously_interviewed values are present."
     ))
@@ -183,7 +183,7 @@ interview_na.fishing.location <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} missing values in the fishing_location column.")
     ))
@@ -191,7 +191,7 @@ interview_na.fishing.location <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All fishing_location values are present."
     ))
@@ -208,7 +208,7 @@ interview_incomplete.trip.fishing.end.time <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews with an incomplete trip status and a fishing end time.")
     ))
@@ -216,7 +216,7 @@ interview_incomplete.trip.fishing.end.time <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All interviews with an incomplete trip status do not have a fishing end time."
     ))
@@ -233,7 +233,7 @@ interview_end.time.before.start.time <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews where the fishing end time is before the fishing start time.")
     ))
@@ -241,7 +241,7 @@ interview_end.time.before.start.time <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All fishing end times are after the fishing start time."
     ))
@@ -258,7 +258,7 @@ interview_interview.before.fishing.start.time <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews where the interview time is before the fishing start time.")
     ))
@@ -266,7 +266,7 @@ interview_interview.before.fishing.start.time <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All interview times are after the fishing start time."
     ))
@@ -283,7 +283,7 @@ interview_complete.trip.missing.end.time <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} interviews with a complete trip status and a missing fishing end time.")
     ))
@@ -291,7 +291,7 @@ interview_complete.trip.missing.end.time <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All interviews with a complete trip status have a fishing end time."
     ))
@@ -308,7 +308,7 @@ interview_na.target.species <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} missing values in the target_species column.")
     ))
@@ -316,7 +316,7 @@ interview_na.target.species <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All target_species values are present."
     ))
@@ -333,7 +333,7 @@ interview_na.boat.used <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = glue::glue("There are {error_count} missing values in the boat_used column.")
     ))
@@ -341,7 +341,7 @@ interview_na.boat.used <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = FALSE,
-      qaqc_check_type = "",
+      qaqc_check_type = "interview",
       error_count = error_count,
       message = "All boat_used values are present."
     ))

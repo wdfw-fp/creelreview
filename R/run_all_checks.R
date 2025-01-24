@@ -25,12 +25,18 @@ run_all_checks <- function(data) {
     interview_incomplete.trip.fishing.end.time = interview_incomplete.trip.fishing.end.time,
     interview_end.time.before.start.time = interview_end.time.before.start.time,
     interview_interview.before.fishing.start.time = interview_interview.before.fishing.start.time,
-    interview_complete.trip.missing.end.time = interview_complete.trip.missing.end.time,
+    # interview_complete.trip.missing.end.time = interview_complete.trip.missing.end.time !!!
     interview_na.target.species = interview_na.target.species,
-    interview_na.boat.used = interview_na.boat.used
+    interview_na.boat.used = interview_na.boat.used,
+
+    # catch_checks.R
+
 
     # effort_checks.R
-
+    effort_end.time.start.time = effort_end.time.start.time,
+    effort_na.location = effort_na.location,
+    effort_na.count.quantity = effort_na.count.quantity,
+    effort_na.count.type = effort_na.count.type
   )
 
   # Loop through checks and store results in the results list

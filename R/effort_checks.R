@@ -18,7 +18,7 @@ effort_end.time.start.time <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = TRUE,
-      qaqc_check_type = "",
+      qaqc_check_type = "effort",
       error_count = error_count,
       message = glue::glue("There are {error_count} rows where the end time is greater than the start time.")
     ))
@@ -26,7 +26,7 @@ effort_end.time.start.time <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = TRUE,
-      qaqc_check_type = "",
+      qaqc_check_type = "effort",
       error_count = error_count,
       message = "All end times are less than or equal to the start times."
     ))
@@ -43,7 +43,7 @@ effort_na.location <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = TRUE,
-      qaqc_check_type = "",
+      qaqc_check_type = "effort",
       error_count = error_count,
       message = glue::glue("There are {error_count} rows where the location is NULL or NA.")
     ))
@@ -51,7 +51,7 @@ effort_na.location <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = TRUE,
-      qaqc_check_type = "",
+      qaqc_check_type = "effort",
       error_count = error_count,
       message = "The 'locations' field has no missing values."
     ))
@@ -68,7 +68,7 @@ effort_na.count.quantity <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = TRUE,
-      qaqc_check_type = "",
+      qaqc_check_type = "effort",
       error_count = error_count,
       message = glue::glue("There are {error_count} rows where the count quantity is NULL or NA.")
     ))
@@ -76,7 +76,7 @@ effort_na.count.quantity <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = TRUE,
-      qaqc_check_type = "",
+      qaqc_check_type = "effort",
       error_count = error_count,
       message = "The 'count_quantity' field has no missing values."
     ))
@@ -93,7 +93,7 @@ effort_na.count.type <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = TRUE,
-      qaqc_check_type = "",
+      qaqc_check_type = "effort",
       error_count = error_count,
       message = glue::glue("There are {error_count} rows where the count type is NULL or NA.")
     ))
@@ -101,24 +101,13 @@ effort_na.count.type <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = TRUE,
-      qaqc_check_type = "",
+      qaqc_check_type = "effort",
       error_count = error_count,
       message = "The 'count_type' field has no missing values."
     ))
   }
 }
 
-# 5 - Interviews that occur between an index count start and stop time
-# violation of sampling assumption
-# effort_flag_progressive_counts <- function(data) {
-#
-#   interview <- data$interview |> dplyr::group_by(event_date)
-#   effort <- data$effort |> dplyr::group_by(event_date, count_sequence)
-#
-#   # Join interview and effort data based on event_date, and check for overlap in time
-#   interviews_between_index_counts <- interview |>
-#     dplyr::inner_join(effort, by = "event_date") |>
-#     dplyr::filter(interview_time >= effort$effort_start_time & interview_time <= effort$effort_end_time)
-#
-#   return(interviews_between_index_counts)
-# }
+# 5 - Count sequence check
+#  identify anomalies in daily effort counts by comparing them to the mode within specified location and event_id groups.
+# Flag values that exceed or fall below the mode and returns flagged rows and a summary.

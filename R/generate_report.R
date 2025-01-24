@@ -45,40 +45,47 @@ generate_report <- function(fishery_names, output_dir = NULL) {
   #Loop through each fishery and render report
   for (fishery_name in fishery_names) {
 
-    cli_alert_info(glue::glue("Starting report generation for {fishery_name}...\n"))
 
-    #Define output file name
-    clean_name <- gsub(" ", "-", fishery_name)
-    output_file <- paste0("qaqc_report_", clean_name, "_", Sys.Date(), ".html")
+    tryCatch({
+      cli_alert_info(glue::glue("Starting report generation for {fishery_name}...\n"))
 
-    #Render Quarto document
-    # system(paste("quarto render", shQuote(quarto_file),
-    #              "--to html",
-    #              paste0("--output ", shQuote(temp_file)),
-    #              paste0("-P fishery_name=", shQuote(fishery_name))
-    # ))
+      #Define output file name
+      clean_name <- gsub(" ", "-", fishery_name)
+      output_file <- paste0("qaqc_report_", clean_name, "_", Sys.Date(), ".html")
 
-    quarto_render(
-      input = quarto_file,
-      output_format = "html",
-      output_file = output_file,
-      execute_params = list(fishery_name = fishery_name)
-    )
+      #Render Quarto document
+      # system(paste("quarto render", shQuote(quarto_file),
+      #              "--to html",
+      #              paste0("--output ", shQuote(temp_file)),
+      #              paste0("-P fishery_name=", shQuote(fishery_name))
+      # ))
 
-    #define final file location, rename, and remove original copy from working directory
-    final_output_file <- file.path(output_dir, basename(output_file))
+      quarto_render(
+        input = quarto_file,
+        output_format = "html",
+        output_file = output_file,
+        execute_params = list(fishery_name = fishery_name)
+      )
 
-    file.rename(output_file, final_output_file)
+      #define final file location, rename, and remove original copy from working directory
+      final_output_file <- file.path(output_dir, basename(output_file))
 
-    if (file.exists(output_file)) {
-      file.remove(output_file)
-    }
+      file.rename(output_file, final_output_file)
 
-    #call helper function to remove figures from inst/figures between each loop
-    cleanup_figures()
+      if (file.exists(output_file)) {
+        file.remove(output_file)
+      }
 
-    #print message
-    cli_alert_success(glue::glue("Rendered report for {fishery_name} to:\n{final_output_file}\n\n\n"))
+      #call helper function to remove figures from inst/figures between each loop
+      cleanup_figures()
+
+      #print message
+      cli_alert_success(glue::glue("Rendered report for {fishery_name} to:\n{final_output_file}\n\n\n"))
+
+    }, error = function(e) {
+      #print fail message
+      cli::cli_alert_danger(glue::glue("Failed to generate report for {fishery_name}. Error: {e$message}\n\n\n"))
+    })
   }
 }
 
