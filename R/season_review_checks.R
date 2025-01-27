@@ -55,9 +55,6 @@ data$interview |>
 
 ### EB 1/17/2025 same pattern here - mutate NA's to 0's for sections with no data
 
-# toy example - let's say no data was collected in section 5
-data$interview <- data$interview |> filter(!section_num == 5)
-
 #table
 int_sec_summ <- data$interview |>
   dplyr::group_by(section_num) |>
@@ -70,7 +67,8 @@ int_sec_summ <- data$interview |>
 int_sec_summ |>
   ggplot2::ggplot(ggplot2::aes(section_num, n_interviews)) +
   ggplot2::geom_bar(stat = "identity") +
-  scale_x_continuous(breaks = round(seq(min(int_sec_summ$section_num), max(int_sec_summ$section_num), by = 1),1))
+  scale_x_continuous(breaks = round(seq(min(int_sec_summ$section_num), max(int_sec_summ$section_num), by = 1),1)) +
+  theme_classic()
 
 ### that makes it a little easier to spot what's missing
 
@@ -80,7 +78,6 @@ int_sec_summ |>
 ### think about the schedule, the actual days sampled, and how those data can help convey "gaps" in sampling
 
 data$interview |>
-  # dplyr::group_by(event_date, section_num) |>
   ggplot2::ggplot(ggplot2::aes(event_date)) +
   ggplot2::geom_bar() +
   ggplot2::facet_wrap(data$interview$section_num)
@@ -89,13 +86,12 @@ data$interview |>
 
 # "Per catch group, summarise the total number of encounters"
 
-### this is species, likely most useful at the catch group
-
 #total
 data$catch |>
-  dplyr::group_by(species) |>
+  dplyr::group_by(catch_group) |>
   dplyr::summarise(n = dplyr::n()) |>
-  dplyr::arrange(dplyr::desc(n))
+  dplyr::arrange(dplyr::desc(n)) |>
+  print(n = 100)
 
 #by section
 join <- data$interview |> dplyr::select(interview_id, section_num, total_group_count)
