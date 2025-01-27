@@ -2,7 +2,9 @@
 
 library("tidyverse")
 
-data <- CreelEstimateR::fetch_dwg("Skagit fall salmon 2024")
+#loads Skagit winter steelhead 2021 fishery dataset
+data("example_dataset")
+data <- example_dataset
 
 # Review data composition across strata ####
 # Is there sufficient data, any gaps of concern, or issues with completeness
