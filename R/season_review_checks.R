@@ -1,5 +1,7 @@
 #used in companion with "Post-season data review_TEMPLATE.docx" file
 
+library("tidyverse")
+
 data <- CreelEstimateR::fetch_dwg("Skagit fall salmon 2024")
 
 # Review data composition across strata ####
@@ -15,31 +17,67 @@ summary_table <- tibble::tibble(
 
 summary_table
 
+# pull reference data for study design derived expectations of the data
+# some elements could be informed by a future stand alone study design lut
+# these tables should provide a basis for evaluating completeness or important things missing in observed data
+
+ref_data <- list(
+  sections = data$fishery_manager |> distinct(section_num) |> arrange(section_num), # pull from sections that should have data, not sections with observed data
+  boat_used = data$interview |> distinct(boat_used), # pull distinct levels of boat_used from interview data; source from study design lut in future?
+  sample_days = data$effort |> distinct(event_date) # effort data should be most reliable observed data for whether sampling occurred
+)
+
+ref_data$sections
+ref_data$boat_used
+ref_data$sample_days
+
 ## Interviews ####
 
 # "Summarize counts of angler types by section. Are both "boat" and "bank" types represented where expected?
 
+### EB 1/17/2025 if no data is collected for a level of boat_used, it will be absent from the output. It will be helpful to infer
+# 0's from NA's if a desired insight is identifying gaps/anomalies in sampling by various strata.
+
+# expand grid table for all potential levels of section_num and boat_used
+section_boat_grid <- expand_grid(ref_data$sections, ref_data$boat_used)
+
+section_boat_grid
+
 data$interview |>
   dplyr::group_by(section_num, boat_used) |>
-  dplyr::summarise(freq = dplyr::n())
+  dplyr::summarise(freq = dplyr::n()) |>
+  right_join(section_boat_grid) |> # right join to attach levels with no observations, value is NA
+  mutate(freq = if_else(is.na(freq), 0, freq)) # mutate NA's to inferred 0's
+
+###
 
 # "Summarize the number of interviews per section. Are there sections lacking interview data?"
 
+### EB 1/17/2025 same pattern here - mutate NA's to 0's for sections with no data
+
 #table
-data$interview |>
+int_sec_summ <- data$interview |>
   dplyr::group_by(section_num) |>
-  dplyr::summarise(n_interviews = dplyr::n())
+  dplyr::summarise(n_interviews = dplyr::n()) |>
+  right_join(ref_data$sections) |>
+  mutate(n_interviews = if_else(is.na(n_interviews), 0, n_interviews)) |>
+  arrange(section_num)
 
 #bar plot
-data$interview |>
-  dplyr::group_by(section_num) |>
-  ggplot2::ggplot(ggplot2::aes(section_num)) +
-  ggplot2::geom_bar()
+int_sec_summ |>
+  ggplot2::ggplot(ggplot2::aes(section_num, n_interviews)) +
+  ggplot2::geom_bar(stat = "identity") +
+  scale_x_continuous(breaks = round(seq(min(int_sec_summ$section_num), max(int_sec_summ$section_num), by = 1),1)) +
+  theme_classic()
+
+### that makes it a little easier to spot what's missing
+
 
 # "Summarize the number of interviews per section per sampling day. Are there sampling gaps that cause concern?"
 
+### think about the schedule, the actual days sampled, and how those data can help convey "gaps" in sampling
+
 data$interview |>
-  # dplyr::group_by(event_date, section_num) |>
   ggplot2::ggplot(ggplot2::aes(event_date)) +
   ggplot2::geom_bar() +
   ggplot2::facet_wrap(data$interview$section_num)
@@ -50,12 +88,17 @@ data$interview |>
 
 #total
 data$catch |>
-  dplyr::group_by(species) |>
+  dplyr::group_by(catch_group) |>
   dplyr::summarise(n = dplyr::n()) |>
-  dplyr::arrange(dplyr::desc(n))
+  dplyr::arrange(dplyr::desc(n)) |>
+  print(n = 100)
 
 #by section
 join <- data$interview |> dplyr::select(interview_id, section_num, total_group_count)
+
+
+### could use catch_group params to set up reference data in similar pattern to above, explicitly showing where there were no observations
+### for catch groups of interest
 
 data$catch |>
   dplyr::left_join(join, by = "interview_id") |>
