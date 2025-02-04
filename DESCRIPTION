@@ -1,12 +1,9 @@
 Package: creelreview
 Title: Quality Assurance/Quality Control (QAQC) Review for Freshwater Creel Data
 Version: 0.1.0
-Authors@R: 
-    person("Colt", "Holley",
-    email = "colt.holley@dfw.wa.gov", 
-    role = c("aut", "cre"),
-    comment = c(ORCID = "0000-0003-4172-4331")
-    )
+Authors@R: c(
+    person("Colt", "Holley", email = "colt.holley@dfw.wa.gov", role = c("cre"), comment = c(ORCID = "0000-0003-4172-4331")),
+    person("Evan", "Booher", role = "aut", comment = c(ORCID = "0000-0003-4353-9113")))
 Description: placeholder text.
 License: GPL-3 + file LICENSE
 Depends:
