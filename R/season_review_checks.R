@@ -1,10 +1,10 @@
 #used in companion with "Post-season data review_TEMPLATE.docx" file
 
 library("tidyverse")
-
+library("gt")
 #loads Skagit winter steelhead 2021 fishery dataset
-data("example_dataset")
-data <- example_dataset
+# data("example_dataset")
+# data <- example_dataset
 
 # Review data composition across strata ####
 # Is there sufficient data, any gaps of concern, or issues with completeness
@@ -30,6 +30,7 @@ ref_data <- list(
 )
 
 ref_data$sections
+
 ref_data$boat_used
 ref_data$sample_days
 
@@ -47,8 +48,8 @@ section_boat_grid
 
 data$interview |>
   dplyr::group_by(section_num, boat_used) |>
-  dplyr::summarise(freq = dplyr::n()) |>
-  right_join(section_boat_grid) |> # right join to attach levels with no observations, value is NA
+  dplyr::summarise(freq = dplyr::n(), .groups = "keep") |>
+  right_join(section_boat_grid, by = c("section_num", "boat_used")) |> # right join to attach levels with no observations, value is NA
   mutate(freq = if_else(is.na(freq), 0, freq)) # mutate NA's to inferred 0's
 
 ###
@@ -72,9 +73,6 @@ int_sec_summ |>
   scale_x_continuous(breaks = round(seq(min(int_sec_summ$section_num), max(int_sec_summ$section_num), by = 1),1)) +
   theme_classic()
 
-### that makes it a little easier to spot what's missing
-
-
 # "Summarize the number of interviews per section per sampling day. Are there sampling gaps that cause concern?"
 
 ### think about the schedule, the actual days sampled, and how those data can help convey "gaps" in sampling
@@ -88,12 +86,19 @@ data$interview |>
 
 # "Per catch group, summarise the total number of encounters"
 
-#total
+#frequency
 data$catch |>
   dplyr::group_by(catch_group) |>
-  dplyr::summarise(n = dplyr::n()) |>
-  dplyr::arrange(dplyr::desc(n)) |>
+  dplyr::summarise(freq = dplyr::n()) |>
+  dplyr::arrange(dplyr::desc(freq)) |>
   print(n = 100)
+
+#abundance
+data$catch |>
+  group_by(catch_group) |>
+  mutate(total = sum(fish_count)) |>
+  distinct(total) |>
+  arrange(desc(total))
 
 #by section
 join <- data$interview |> dplyr::select(interview_id, section_num, total_group_count)
@@ -102,30 +107,55 @@ join <- data$interview |> dplyr::select(interview_id, section_num, total_group_c
 ### could use catch_group params to set up reference data in similar pattern to above, explicitly showing where there were no observations
 ### for catch groups of interest
 
-data$catch |>
+# abundance by catch group
+catch_abundance <- data$catch |>
   dplyr::left_join(join, by = "interview_id") |>
-  dplyr::group_by(section_num, species) |>
-  dplyr::summarise(n = dplyr::n(), .groups = "drop") |>
-  dplyr::arrange(section_num, dplyr::desc(n)) |>
-  print(n = Inf)
+  dplyr::group_by(section_num, catch_group) |>
+  mutate(total = sum(fish_count)) |>
+  distinct(total) |>
+  dplyr::arrange(section_num, dplyr::desc(total))
+
+catch_abundance <- catch_abundance |>
+  mutate(species = stringr::str_extract(catch_group, "^[A-Za-z]+(?: [A-Za-z]+)?(?: - Unspecified)?"))
+
+species_of_interest <- c("Chinook", "Coho", "Steelhead", "Rainbow Trout", "Coastal Cutthroat", "Trout - Unspecified")
+
+catch_abundance <- catch_abundance |>
+  filter(species %in% species_of_interest)
+
+catch_abundance |>
+  ggplot(aes(x = catch_group, y = total)) +
+  geom_col() +
+  facet_wrap(~ section_num, labeller = labeller(section_num = function(x) paste0("Section: ", x))) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(y = "Abundance")
 
 # Summarize frequency of reported catch by catch group and section. Are sections lacking data for a given catch group?"
 
-#by catch group
-data$catch |>
-  dplyr::left_join(join, by = "interview_id") |>
-  dplyr::group_by(species, life_stage, fin_mark, fate) |>
-  dplyr::summarise(n = dplyr::n()) |>
-  dplyr::arrange(dplyr::desc(n)) |>
-  print(n = Inf)
-
 #by catch group and section
-data$catch |>
+catch_freq <- data$catch |>
   dplyr::left_join(join, by = "interview_id") |>
-  dplyr::group_by(section_num, species, life_stage, fin_mark, fate) |>
+  dplyr::group_by(section_num, catch_group) |>
   dplyr::summarise(n = dplyr::n(), .groups = "drop") |>
-  dplyr::arrange(section_num, dplyr::desc(n)) |>
-  print(n = Inf)
+  dplyr::arrange(section_num, dplyr::desc(n))
+
+catch_freq <- catch_freq |>
+  mutate(species = stringr::str_extract(catch_group, "^[A-Za-z]+(?: [A-Za-z]+)?(?: - Unspecified)?"))
+
+species_of_interest <- c("Chinook", "Coho", "Steelhead", "Rainbow Trout", "Coastal Cutthroat", "Trout - Unspecified")
+
+catch_freq <- catch_freq |>
+  filter(species %in% species_of_interest)
+
+catch_freq |>
+  ggplot(aes(x = catch_group, y = n)) +
+  geom_col() +
+  facet_wrap(~ section_num, labeller = labeller(section_num = function(x) paste0("Section: ", x))) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90)) +
+  labs(y = "Frequency")
+
 
 ### !!! "Calculate the mark rate of reported catch across fate and section. ####
 # Does the AD to UM mark rate align with the expected fishery composition?"
@@ -134,15 +164,36 @@ data$catch |>
 
 data$catch |>
   dplyr::left_join(join, by = "interview_id") |>
-  dplyr::group_by(interview_id, species, total_group_count) |>
+  filter(section_num == 5) |>
+  dplyr::group_by(interview_id, catch_group) |>
   dplyr::summarise(n = dplyr::n(), .groups = "drop") |>
   dplyr::mutate(fish_per_angler = n / total_group_count) |>
-  dplyr::arrange(dplyr::desc(fish_per_angler)) |>
-  print(n = 50)
+  dplyr::arrange(dplyr::desc(fish_per_angler))
+
+data$catch |>
+  dplyr::left_join(join, by = "interview_id") |>
+  group_by(interview_id, catch_group) |>
+  summarise(max = max(fish_count)) |>
+  arrange(desc(max)) |>
+  print(n = 20)
+
 
 # Census effort ####
 
-# !!! "Do all sections have at least one "tie-in" count?" ####
+#count types recorded
+census_count_types <- data$effort |>
+  filter(survey_type == "Census") |>
+  distinct(count_type) |>
+  arrange(count_type)
+
+census_count_types
+
+# "Do all sections have at least one "tie-in" count?" ####
+data$effort |>
+  filter(survey_type == "Census") |>
+  group_by(section_num, location, count_type) |>
+  summarise(n_census_count = n()) |>
+  print(n = Inf)
 
 #number of effort counts per section
 data$effort |>
@@ -152,8 +203,7 @@ data$effort |>
   dplyr::distinct() |>
   dplyr::group_by(section_num, count_type) |>
   dplyr::summarise(n = dplyr::n(), .groups = "drop") |>
-  dplyr::arrange(section_num) |>
-  gt::gt(groupname_col = "section_num")
+  dplyr::arrange(section_num)
 
 #produce a table of census effort count dates
 census_dates <- data$effort |>
@@ -187,3 +237,110 @@ if (nrow(census_dates) > 0) {
       duration = "Duration"
     )
 }
+
+## Index effort ####
+ n_count_sequence <- data$effort |>
+  select(count_sequence) |>
+  distinct() |>
+  nrow()
+
+# Considering ...
+
+data$effort |>
+  distinct(section_num, location, event_date, tie_in_indicator, count_sequence) |>
+  count(section_num, location, tie_in_indicator) |>
+  mutate(tie_in_indicator = case_when(
+    tie_in_indicator == 1 ~ "census",
+    tie_in_indicator == 0 ~ "index"
+  )) |>
+  arrange(section_num, tie_in_indicator, location) |>
+  gt(groupname_col = "section_num", rowname_col = "location") |>
+  tab_style(
+    style = list(cell_fill("grey70"), cell_text(weight = "bold")),
+    locations = cells_body(rows = tie_in_indicator == "census")
+  )
+
+# Total number of census effort surveys by water_body, event_date, and section_num;
+## NOTE: NAs in the "effort_type.y" column indicate that a census survey was conducted without the paired index count; if this occurs, the census data without a paired index count needs to be filter out for BSS model to run
+left_join(
+  data$effort |>
+    filter(tie_in_indicator == 1) |>
+    mutate(effort_type = "Census") |>
+    select(water_body, event_date, section_num, effort_type) |>
+    distinct() |>
+    arrange(event_date, section_num),
+  data$effort |>
+    filter(tie_in_indicator == 0) |>
+    mutate(effort_type = "Index") |>
+    select(water_body, event_date, section_num, effort_type) |>
+    distinct() |>
+    arrange(event_date, section_num),
+  by = c("water_body", "event_date", "section_num")
+) |> print(n= Inf)
+
+### Are there any unexpected count sequences?
+
+data$effort %>%
+  filter(survey_type == "Index") %>%
+  ggplot(aes(x = count_sequence)) +
+  geom_histogram() +
+  labs(y = "Number of index effort counts", x = "Index effort counts per day") +
+  scale_x_continuous(breaks = (seq(1, n_count_sequence, by = 1))) +
+  theme_bw()
+
+### Were there any index sites missed systematically during the data quality assurance process that should be noted here?
+
+missing_index_counts <- function() {
+  #sites visited
+  surveyed_index_sites <- data$effort |>
+    filter(location_type == "Site") |>
+    select(event_date, section_num, location) |>
+    distinct()
+
+  #study design
+  expected_index_sites <- data$fishery_manager |>
+    filter(location_type == "Site") |>
+    group_by(section_num, location_code) |>
+    summarize()
+
+  #expand expected list by surveyed dates
+  expected_index_sites_dates <- surveyed_index_sites |>
+    distinct(event_date) |>
+    cross_join(expected_index_sites) |>
+    select(section_num, location_code, event_date)
+
+  # Perform anti-join to identify missing index sites
+  missing_index_sites <- anti_join(expected_index_sites_dates, surveyed_index_sites, by = c("location_code" = "location", "section_num", "event_date"))
+
+  # If there are missing sites, create a summary table
+  if (nrow(missing_index_sites) > 0) {
+    missing_index_sites_summary <- missing_index_sites |>
+      group_by(section_num, location_code) |>
+      summarize(min_date = min(event_date),
+                max_date = max(event_date),
+                num_dates_missed = n())  |>
+      ungroup()
+
+    # Plot summary table
+    missing_index_sites_summary |>
+      gt() |>
+      tab_header("Summary of index sites missing from effort count data") |>
+      tab_spanner(label = "Survey dates missed",
+                  columns = c("min_date", "max_date", "num_dates_missed")) |>
+      cols_label(
+        section_num = "Section number",
+        location_code = "Site name",
+        min_date = "First",
+        max_date = "Most recent",
+        num_dates_missed = "Number"
+      ) |>
+      cols_align(
+        align = "center",
+        columns = everything()
+      )
+  } else {
+    cat("There are no index sites missing from effort count data.<br>","*This requires correct setup of Fishery Manager Table on FishApps with project study design.*")
+  }
+}
+
+missing_index_counts()
