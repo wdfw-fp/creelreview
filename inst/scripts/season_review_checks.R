@@ -6,6 +6,23 @@ library("gt")
 # data("example_dataset")
 # data <- example_dataset
 
+data <- CreelEstimateR::fetch_dwg("Satsop winter steelhead 2024-25")
+
+# data$effort <- data$effort |>
+#   filter(section_num == 1)
+
+#catch lacks 'section_num' column, so borrow from interview and join by interview_id
+join <- data$interview |>
+  dplyr::select(interview_id, total_group_count, section_num)
+
+data$catch <- data$catch |>
+  dplyr::left_join(join, by = "interview_id")
+
+#now that catch is done, filter sections from interviews
+# data$interview <- data$interview |>
+#   filter(section_num == 1)
+
+
 # Review data composition across strata ####
 # Is there sufficient data, any gaps of concern, or issues with completeness
 
@@ -19,12 +36,13 @@ summary_table <- tibble::tibble(
 
 summary_table
 
+
 # pull reference data for study design derived expectations of the data
 # some elements could be informed by a future stand alone study design lut
 # these tables should provide a basis for evaluating completeness or important things missing in observed data
 
 ref_data <- list(
-  sections = data$fishery_manager |> distinct(section_num) |> arrange(section_num), # pull from sections that should have data, not sections with observed data
+  sections = data$effort |> distinct(section_num) |> arrange(section_num), # pull from sections that should have data, not sections with observed data
   boat_used = data$interview |> distinct(boat_used), # pull distinct levels of boat_used from interview data; source from study design lut in future?
   sample_days = data$effort |> distinct(event_date) # effort data should be most reliable observed data for whether sampling occurred
 )
@@ -34,7 +52,7 @@ ref_data$sections
 ref_data$boat_used
 ref_data$sample_days
 
-## Interviews ####
+A## Interviews ####
 
 # "Summarize counts of angler types by section. Are both "boat" and "bank" types represented where expected?
 
@@ -93,32 +111,21 @@ data$catch |>
   dplyr::arrange(dplyr::desc(freq)) |>
   print(n = 100)
 
-#abundance
-data$catch |>
-  group_by(catch_group) |>
-  mutate(total = sum(fish_count)) |>
-  distinct(total) |>
-  arrange(desc(total))
-
-#by section
-join <- data$interview |> dplyr::select(interview_id, section_num, total_group_count)
-
 
 ### could use catch_group params to set up reference data in similar pattern to above, explicitly showing where there were no observations
 ### for catch groups of interest
 
 # abundance by catch group
 catch_abundance <- data$catch |>
-  dplyr::left_join(join, by = "interview_id") |>
   dplyr::group_by(section_num, catch_group) |>
   mutate(total = sum(fish_count)) |>
   distinct(total) |>
-  dplyr::arrange(section_num, dplyr::desc(total))
+  dplyr::arrange(dplyr::desc(total))
 
 catch_abundance <- catch_abundance |>
   mutate(species = stringr::str_extract(catch_group, "^[A-Za-z]+(?: [A-Za-z]+)?(?: - Unspecified)?"))
 
-species_of_interest <- c("Chinook", "Coho", "Steelhead", "Rainbow Trout", "Coastal Cutthroat", "Trout - Unspecified")
+species_of_interest <- c("Chinook", "Coho", "Steelhead")
 
 catch_abundance <- catch_abundance |>
   filter(species %in% species_of_interest)
@@ -126,24 +133,25 @@ catch_abundance <- catch_abundance |>
 catch_abundance |>
   ggplot(aes(x = catch_group, y = total)) +
   geom_col() +
-  facet_wrap(~ section_num, labeller = labeller(section_num = function(x) paste0("Section: ", x))) +
+  # facet_wrap(~ section_num, labeller = labeller(section_num = function(x) paste0("Section: ", x))) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90)) +
   labs(y = "Abundance")
+  # scale_y_continuous(limits = c(0,300), n.breaks =6 ,expand = c(0,0))
 
 # Summarize frequency of reported catch by catch group and section. Are sections lacking data for a given catch group?"
 
 #by catch group and section
 catch_freq <- data$catch |>
-  dplyr::left_join(join, by = "interview_id") |>
-  dplyr::group_by(section_num, catch_group) |>
+  dplyr::group_by(interview_id, section_num, catch_group) |>
   dplyr::summarise(n = dplyr::n(), .groups = "drop") |>
-  dplyr::arrange(section_num, dplyr::desc(n))
+  dplyr::arrange(section_num, dplyr::desc(n)) |>
+  relocate(interview_id, .after = last_col())
 
 catch_freq <- catch_freq |>
   mutate(species = stringr::str_extract(catch_group, "^[A-Za-z]+(?: [A-Za-z]+)?(?: - Unspecified)?"))
 
-species_of_interest <- c("Chinook", "Coho", "Steelhead", "Rainbow Trout", "Coastal Cutthroat", "Trout - Unspecified")
+species_of_interest <- c("Chinook", "Coho")
 
 catch_freq <- catch_freq |>
   filter(species %in% species_of_interest)
@@ -163,17 +171,15 @@ catch_freq |>
 # "Look for potential outliers in catch per interview / group size"
 
 data$catch |>
-  dplyr::left_join(join, by = "interview_id") |>
-  filter(section_num == 5) |>
-  dplyr::group_by(interview_id, catch_group) |>
+  dplyr::group_by(interview_id, catch_group, total_group_count) |>
   dplyr::summarise(n = dplyr::n(), .groups = "drop") |>
   dplyr::mutate(fish_per_angler = n / total_group_count) |>
   dplyr::arrange(dplyr::desc(fish_per_angler))
 
 data$catch |>
-  dplyr::left_join(join, by = "interview_id") |>
   group_by(interview_id, catch_group) |>
   summarise(max = max(fish_count)) |>
+  relocate(interview_id, .after = max) |>
   arrange(desc(max)) |>
   print(n = 20)
 
@@ -243,6 +249,8 @@ if (nrow(census_dates) > 0) {
   select(count_sequence) |>
   distinct() |>
   nrow()
+
+n_count_sequence
 
 # Considering ...
 
