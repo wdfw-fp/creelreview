@@ -8,11 +8,11 @@
 # [21] "surveyor_num"         "p_census_bank"        "p_census_boat"        "indirect_census_bank"
 # [25] "direct_census_bank"
 
-# 1 - Effort end time > start time
+# 1 - Effort end time < start time
 effort_end.time.start.time <- function(data) {
 
   effort <- data$effort
-  error_count <- sum(effort$effort_end_time > effort$effort_start_time, na.rm = TRUE)
+  error_count <- sum(effort$effort_end_time < effort$effort_start_time, na.rm = TRUE)
 
   if (error_count > 0) {
     return(create_results_table(
@@ -20,7 +20,7 @@ effort_end.time.start.time <- function(data) {
       critical = TRUE,
       qaqc_check_type = "effort",
       error_count = error_count,
-      message = glue::glue("There are {error_count} rows where the end time is greater than the start time.")
+      message = glue::glue("There are {error_count} rows where the end time is less than the start time.")
     ))
   } else {
     return(create_results_table(
@@ -28,7 +28,7 @@ effort_end.time.start.time <- function(data) {
       critical = TRUE,
       qaqc_check_type = "effort",
       error_count = error_count,
-      message = "All end times are less than or equal to the start times."
+      message = "All end times are greater than or equal to the start times."
     ))
   }
 }
