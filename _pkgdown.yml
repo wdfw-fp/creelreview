@@ -1,4 +1,24 @@
+url: https://wdfw-fp.github.io/creelreview/
 template:
   bootstrap: 5
+  includes:
+    before_title: '<img src="https://wdfw.widen.net/content/rodpw2fbqj/png/wdfw_logo_stacked_fullcolor.png?w=300" alt="Logo" height="50" style="padding-right: 20px;">'
 development:
   mode: auto
+
+reference:
+- title: "High level functions"
+  desc: >
+    The primary methods of performing QAQC
+  contents:
+    - run_all_checks
+    - get_grading
+- title: "Low level functions"
+  desc: >
+    Process-specific functions typically called by high level functions
+- title: "Other"
+  desc: >
+    placeholder text
+  contents:
+    - generate_report
+    - example_dataset

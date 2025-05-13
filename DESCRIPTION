@@ -1,23 +1,23 @@
 Package: creelreview
-Title: Quality Assurance/Quality Control (QAQC) Review for Freshwater Creel Data
+Title:  Tools for review freshwater creel data
 Version: 0.1.0
 Authors@R: c(
-    person("Colt", "Holley", email = "colt.holley@dfw.wa.gov", role = c("cre"), comment = c(ORCID = "0000-0003-4172-4331")),
+    person("Colt", "Holley", email = "colt.holley@dfw.wa.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-4172-4331")),
     person("Evan", "Booher", role = "aut", comment = c(ORCID = "0000-0003-4353-9113")))
-Description: placeholder text.
+Description: R package for performing rigorous, standardized data quality assurance and quality control checks (QAQC) on freshwater recreational creel data.
 License: GPL-3 + file LICENSE
 Depends:
-    R (>= 4.0)
+    R (>= 4.1)
+VignetteBuilder: knitr
 Imports:
     cli,
     glue,
     dplyr,
     tibble,
     quarto,
-    here,
-    remotes
+    here
 Remotes:
-    cbedwards-dfw/CreelEstimateR
+    wdfw-fp/creelutils
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
@@ -25,3 +25,5 @@ LazyData: true
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+URL: https://wdfw-fp.github.io/creelreview
+BugReports: https://github.com/wdfw-fp/creelreview/issues

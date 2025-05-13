@@ -77,7 +77,7 @@ run_all_checks <- function(data) {
 #' @param message character / message to display in results table
 #' @returns template results table
 #' @importFrom tibble tibble
-#' @export
+#' @keywords internal
 create_results_table <- function(pass, critical, qaqc_check_type, error_count, message) {
 
   table <- tibble::tibble(

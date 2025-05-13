@@ -1,14 +1,13 @@
-
-# > colnames(dwg$effort)
-# [1] "creel_event_id"       "event_date"           "water_body"           "project_name"
-# [5] "fishery_name"         "effort_event_id"      "location"             "location_id"
-# [9] "tie_in_indicator"     "count_sequence"       "effort_start_time"    "effort_end_time"
-# [13] "no_count_reason"      "comments"             "count_type"           "count_quantity"
-# [17] "location_type"        "survey_type"          "location_season_name" "section_num"
-# [21] "surveyor_num"         "p_census_bank"        "p_census_boat"        "indirect_census_bank"
-# [25] "direct_census_bank"
-
 # 1 - Effort end time < start time
+
+
+
+#' Effort count end time before start time
+#'
+#' @param data list that includes an 'effort' list of creel data
+#'
+#' @returns table describing the check applied, status, error count, and includes a message
+#' @export
 effort_end.time.start.time <- function(data) {
 
   effort <- data$effort

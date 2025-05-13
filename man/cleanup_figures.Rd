@@ -11,3 +11,4 @@ This is a helper function that removes all files from the inst/figures directory
 As the html reports have embeded resources, this is useful for cleaning up the
 figures directory between each sequential report iteration.
 }
+\keyword{internal}

@@ -23,3 +23,4 @@ template results table
 \description{
 This helper function creates a results table for each QAQC check.
 }
+\keyword{internal}
