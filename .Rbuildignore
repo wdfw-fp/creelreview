@@ -1,2 +1,6 @@
 ^CreelDataQAQC\.Rproj$
 ^\.Rproj\.user$
+^\.github$
+^README\.md$
+^_pkgdown\.yml$
+^qaqc_script\.qmd$
