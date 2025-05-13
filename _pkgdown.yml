@@ -16,6 +16,8 @@ reference:
 - title: "Low level functions"
   desc: >
     Process-specific functions typically called by high level functions
+  contents:
+    - effort_end.time.start.time
 - title: "Other"
   desc: >
     placeholder text
