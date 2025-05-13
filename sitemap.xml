@@ -1,15 +1,16 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
-<url><loc>/404.html</loc></url>
-<url><loc>/LICENSE-text.html</loc></url>
-<url><loc>/authors.html</loc></url>
-<url><loc>/index.html</loc></url>
-<url><loc>/news/index.html</loc></url>
-<url><loc>/reference/cleanup_figures.html</loc></url>
-<url><loc>/reference/create_results_table.html</loc></url>
-<url><loc>/reference/example_dataset.html</loc></url>
-<url><loc>/reference/generate_report.html</loc></url>
-<url><loc>/reference/get_grading.html</loc></url>
-<url><loc>/reference/index.html</loc></url>
-<url><loc>/reference/run_all_checks.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/404.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/LICENSE-text.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/authors.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/index.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/news/index.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/reference/cleanup_figures.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/reference/create_results_table.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/reference/effort_end.time.start.time.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/reference/example_dataset.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/reference/generate_report.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/reference/get_grading.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/reference/index.html</loc></url>
+<url><loc>https://wdfw-fp.github.io/creelreview/reference/run_all_checks.html</loc></url>
 </urlset>
 

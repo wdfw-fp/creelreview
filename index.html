@@ -5,22 +5,21 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Quality Assurance/Quality Control (QAQC) Review for Freshwater Creel Data • creelreview</title>
+<title>Tools for review freshwater creel data • creelreview</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Quality Assurance/Quality Control (QAQC) Review for Freshwater Creel Data">
-<meta name="description" content="placeholder text.">
-<meta property="og:description" content="placeholder text.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Tools for review freshwater creel data">
+<meta name="description" content="R package for performing rigorous, standardized data quality assurance and quality control checks (QAQC) on freshwater recreational creel data.">
+<meta property="og:description" content="R package for performing rigorous, standardized data quality assurance and quality control checks (QAQC) on freshwater recreational creel data.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
-
-    <a class="navbar-brand me-2" href="index.html">creelreview</a>
+    <img src="https://wdfw.widen.net/content/rodpw2fbqj/png/wdfw_logo_stacked_fullcolor.png?w=300" alt="Logo" height="50" style="padding-right: 20px;"><a class="navbar-brand me-2" href="index.html">creelreview</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
@@ -38,6 +37,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/wdfw-fp/creelreview/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -53,46 +53,25 @@
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p><code>creelreview</code> is a R package for performing rigorous, standardized data quality assurance and quality control checks (QAQC) on freshwater recreational creel data. It is used during in-season monitoring of ongoing fisheries and for critical review of complete datasets during the post-season. This work supports <a href="https://github.com/wdfw-fp/CreelEstimates" class="external-link">CreelEstimates</a>.</p>
-<div class="section level3">
-<h3 id="high-level-functions">High level functions<a class="anchor" aria-label="anchor" href="#high-level-functions"></a>
-</h3>
-<ul>
-<li>run_all_checks.R</li>
-<li>get_grading.R</li>
-<li>generate_report.R</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="low-level-functions">Low level functions<a class="anchor" aria-label="anchor" href="#low-level-functions"></a>
-</h3>
-<ul>
-<li>assumption_checks.R</li>
-<li>effort_checks.R</li>
-<li>interview_checks.R</li>
-<li>catch_checks.R</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="forms">Forms<a class="anchor" aria-label="anchor" href="#forms"></a>
-</h3>
-<ul>
-<li>season_review_checks.R</li>
-</ul>
-</div>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p><code>creelreview</code> can be installed from source code with either the <code>devtools</code> or <code>remotes</code> packages:</p>
+<p><code>creelreview</code> can be installed from GitHub with the <code>devtools</code> package. As GitHub is a source code repository, this requires the installation of <a href="https://cran.r-project.org/bin/windows/Rtools/" class="external-link">Rtools</a>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"wdfw-fp/creelreview"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Alternatively </span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"wdfw-fp/creelreview"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"wdfw-fp/creelreview"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 
-  </main><aside class="col-md-3"><div class="license">
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/wdfw-fp/creelreview/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/wdfw-fp/creelreview/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>
@@ -112,7 +91,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Colt Holley <br><small class="roles"> Maintainer </small> <a href="https://orcid.org/0000-0003-4172-4331" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Colt Holley <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-4172-4331" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li>Evan Booher <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0003-4353-9113" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
