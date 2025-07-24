@@ -3,7 +3,7 @@ title: "Creel Data QAQC Report"
 subtitle: "Freshwater Recreational Fisheries Management Unit, WDFW"
 date: last-modified
 params:
-  fishery_name: "Default"
+  fishery_name: "Skagit summer sockeye 2025"
   na_concerns: ["target_species", "trip_status", "boat_type", "fishing_end_time", "boat_used", "effort_start_time", "interview_time", "trailer_count, fish_from_boat"]
 # optional: previously_interviewed and fish_from_boat
 execute:
@@ -49,7 +49,9 @@ package_list <- c(
   "cowplot",
   "htmltools",
   "glue",
-  "scales"
+  "scales",
+  "creelutils",
+  "creelreview"
 )
 
 #load packages and install if necessary
@@ -58,7 +60,8 @@ xfun::pkg_attach(package_list, install = TRUE)
 # Install/Update the CreelDataQAQC package from GitHub
 # Quarto environment requires it be installed locally
 #forcing update keeps users up-to-date with any new qaqc checks
-invisible(remotes::install_github("wdfw-fp/CreelDataQAQC", force = TRUE, quiet = TRUE))
+invisible(remotes::install_github("wdfw-fp/creelreview", force = TRUE, quiet = TRUE))
+invisible(remotes::install_github("wdfw-fp/creelutils", force = TRUE, quiet = TRUE))
 
 knitr::opts_chunk$set(
   fig.width = 10, 
@@ -213,7 +216,7 @@ generate_na_summary <- function(dwg, params) {
 
 ```{r fetch_data}
 #import data using fishery_name param
-dwg <- CreelEstimateR::fetch_dwg(params$fishery_name)
+dwg <- creelutils::fetch_dwg(params$fishery_name)
 
 #add FishApps creel_event_id URLs
 dwg$effort <- dwg$effort %>%
@@ -253,7 +256,7 @@ dwg$catch <- dwg$interview %>%
 
 
 ```{r}
-results_table <- CreelDataQAQC::run_all_checks(data = dwg)
+results_table <- creelreview::run_all_checks(data = dwg)
 
 results_table |> 
   gt() |> 
