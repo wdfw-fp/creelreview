@@ -43,15 +43,12 @@ Many of the QAQC tables in this document contain a `creel_event_id` and/or `fish
 
 package_list <- c(
   "tidyverse",
-  "here",
   "gt",
   "DataExplorer",
   "cowplot",
   "htmltools",
   "glue",
-  "scales",
-  "creelutils",
-  "creelreview"
+  "scales"
 )
 
 #load packages and install if necessary
@@ -60,8 +57,8 @@ xfun::pkg_attach(package_list, install = TRUE)
 # Install/Update the CreelDataQAQC package from GitHub
 # Quarto environment requires it be installed locally
 #forcing update keeps users up-to-date with any new qaqc checks
-invisible(remotes::install_github("wdfw-fp/creelreview", force = TRUE, quiet = TRUE))
-invisible(remotes::install_github("wdfw-fp/creelutils", force = TRUE, quiet = TRUE))
+# invisible(remotes::install_github("wdfw-fp/creelreview", force = TRUE, quiet = TRUE))
+invisible(remotes::install_github("wdfw-fp/creelutils", quiet = TRUE))
 
 knitr::opts_chunk$set(
   fig.width = 10, 
@@ -256,22 +253,22 @@ dwg$catch <- dwg$interview %>%
 
 
 ```{r}
-results_table <- creelreview::run_all_checks(data = dwg)
+# results_table <- creelreview::run_all_checks(data = dwg)
 
-results_table |> 
-  gt() |> 
-  tab_style(
-    style = cell_fill(color = "green"),  # Apply color green for rows with 'green' in status_color
-    locations = cells_body(rows = which(results_table$status_color == "green"), columns = "status_color")
-  ) |> 
-  tab_style(
-    style = cell_fill(color = "yellow"),  # Apply color yellow for rows with 'yellow' in status_color
-    locations = cells_body(rows = which(results_table$status_color == "yellow"), columns = "status_color")
-  ) |> 
-  tab_style(
-    style = cell_fill(color = "red"),  # Apply color red for rows with 'red' in status_color
-    locations = cells_body(rows = which(results_table$status_color == "red"), columns = "status_color")
-  )
+# results_table |> 
+#   gt() |> 
+#   tab_style(
+#     style = cell_fill(color = "green"),  # Apply color green for rows with 'green' in status_color
+#     locations = cells_body(rows = which(results_table$status_color == "green"), columns = "status_color")
+#   ) |> 
+#   tab_style(
+#     style = cell_fill(color = "yellow"),  # Apply color yellow for rows with 'yellow' in status_color
+#     locations = cells_body(rows = which(results_table$status_color == "yellow"), columns = "status_color")
+#   ) |> 
+#   tab_style(
+#     style = cell_fill(color = "red"),  # Apply color red for rows with 'red' in status_color
+#     locations = cells_body(rows = which(results_table$status_color == "red"), columns = "status_color")
+#   )
 
 ```
 
