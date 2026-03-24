@@ -15,7 +15,6 @@ Imports:
     dplyr,
     tibble,
     quarto,
-    here,
     withr
 Remotes:
     wdfw-fp/creelutils
@@ -24,6 +23,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 LazyData: true
 Suggests: 
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: https://wdfw-fp.github.io/creelreview
