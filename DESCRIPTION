@@ -1,5 +1,5 @@
 Package: creelreview
-Title:  Tools for review freshwater creel data
+Title: Tools for reviewing freshwater creel data
 Version: 0.1.0
 Authors@R: c(
     person("Colt", "Holley", email = "colt.holley@dfw.wa.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0003-4172-4331")),
@@ -15,7 +15,8 @@ Imports:
     dplyr,
     tibble,
     quarto,
-    here
+    here,
+    withr
 Remotes:
     wdfw-fp/creelutils
 Encoding: UTF-8

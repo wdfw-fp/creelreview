@@ -21,7 +21,7 @@ mapped drives are supported (e.g. "T:/path/to/folder").}
 Invisibly returns a summary data frame of render results.
 }
 \description{
-Renders an HTML QAQC report for one or more freshwater creel fisheries
+Renders a HTML report on data quality assurance/quality control (QAQC) for one or more freshwater creel fisheries
 and saves them to a specified directory.
 }
 \examples{
@@ -31,8 +31,8 @@ generate_report("Hoh winter steelhead 2025-26")
 
 # Multiple fisheries, custom output location
 generate_report(
-  fishery_names = c("Hoh winter steelhead 2025-26", "Chehalis winter steelhead 2025-26"),
-  output_dir = "T:/some/other/path"
+  fishery_names = c("Skagit fall salmon 2025", "Chehalis winter steelhead 2025-26"),
+  output_dir = "<path>"
 )
 }
 }
