@@ -4,27 +4,35 @@
 \alias{generate_report}
 \title{Generate QAQC report}
 \usage{
-generate_report(fishery_names, output_dir = NULL)
+generate_report(
+  fishery_names,
+  output_dir =
+    "T:/DFW-Team FP FW Creel Monitoring Program - General/Project_Support_Files/Data Quality Assurance/QAQC Reports"
+)
 }
 \arguments{
 \item{fishery_names}{A character vector of freshwater creel fishery names.}
 
-\item{output_dir}{A character string specifying the directory to save the reports.}
+\item{output_dir}{Path to the directory where rendered HTML reports will be
+saved. Defaults to the standard WDFW Teams QAQC Reports folder. On Windows,
+mapped drives are supported (e.g. "T:/path/to/folder").}
 }
 \value{
-HTML QAQC report for each fishery
+Invisibly returns a summary data frame of render results.
 }
 \description{
-This function generates HTML QAQC reports for specified freshwater creel fisheries
-and saves them to a specified directory. By default, the reports are saved to a
-directory called "CreelDataQAQC_reports" in the current working directory.
+Renders an HTML QAQC report for one or more freshwater creel fisheries
+and saves them to a specified directory.
 }
 \examples{
 \dontrun{
-# Default usage: saves report to current working directory
-generate_report(c("Fishery A", "Fishery B"))
+# Single fishery, default output location
+generate_report("Hoh winter steelhead 2025-26")
 
-# Custom output directory
-generate_report(c("Fishery A", "Fishery B"), output_dir = "path/to/output")
+# Multiple fisheries, custom output location
+generate_report(
+  fishery_names = c("Hoh winter steelhead 2025-26", "Chehalis winter steelhead 2025-26"),
+  output_dir = "T:/some/other/path"
+)
 }
 }

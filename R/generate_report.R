@@ -1,107 +1,100 @@
 #' Generate QAQC report
 #'
-#' This function generates HTML QAQC reports for specified freshwater creel fisheries
-#' and saves them to a specified directory. By default, the reports are saved to a
-#' directory called "CreelDataQAQC_reports" in the current working directory.
+#' Renders a HTML report on data quality assurance/quality control (QAQC) for one or more freshwater creel fisheries
+#' and saves them to a specified directory.
 #'
 #' @param fishery_names A character vector of freshwater creel fishery names.
-#' @param output_dir A character string specifying the directory to save the reports.
+#' @param output_dir Path to the directory where rendered HTML reports will be
+#'   saved. Defaults to the standard WDFW Teams QAQC Reports folder. On Windows,
+#'   mapped drives are supported (e.g. "T:/path/to/folder").
+#'
+#' @return Invisibly returns a summary data frame of render results.
 #' @importFrom glue glue
-#' @importFrom cli cli_alert_info
+#' @importFrom cli cli_alert_info cli_alert_success cli_alert_danger cli_rule
 #' @importFrom quarto quarto_render
-#' @importFrom here here
-#' @returns HTML QAQC report for each fishery
+#' @importFrom withr with_dir
 #' @examples
 #' \dontrun{
-#' # Default usage: saves report to current working directory
-#' generate_report(c("Fishery A", "Fishery B"))
+#' # Single fishery, default output location
+#' generate_report("Hoh winter steelhead 2025-26")
 #'
-#' # Custom output directory
-#' generate_report(c("Fishery A", "Fishery B"), output_dir = "path/to/output")
+#' # Multiple fisheries, custom output location
+#' generate_report(
+#'   fishery_names = c("Skagit fall salmon 2025", "Chehalis winter steelhead 2025-26"),
+#'   output_dir = "<path>"
+#' )
 #' }
 #' @export
-generate_report <- function(fishery_names, output_dir = NULL) {
+generate_report <- function(
+    fishery_names,
+    output_dir = "T:/DFW-Team FP FW Creel Monitoring Program - General/Project_Support_Files/Data Quality Assurance/QAQC Reports"
+) {
 
-  #default output location
-  if (is.null(output_dir)) {
-    output_dir <- normalizePath(file.path(getwd(), "CreelDataQAQC_reports"), mustWork = FALSE)
-  } else {
-    output_dir <- normalizePath(output_dir, mustWork = FALSE)
+  # Locate template bundled with the package
+  template <- system.file("scripts/qaqc_script.qmd", package = "creelreview")
+  if (!nzchar(template)) {
+    stop("QAQC template not found. Try reinstalling creelreview.")
   }
 
-  # Ensure the output directory exists
+  # Validate output directory
+  output_dir <- normalizePath(output_dir, mustWork = FALSE)
   if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
+    stop("output_dir does not exist: ", output_dir)
   }
 
-  #path to QAQC report file in inst/rmarkdown/
-  quarto_file <- here("qaqc_script.qmd")
+  results <- list()
 
-  # Check if the file is found
-  if (quarto_file == "") {
-    stop(paste(quarto_file, "not found in inst/rmarkdown/."))
-  }
-
-  #Loop through each fishery and render report
   for (fishery_name in fishery_names) {
 
+    clean_name  <- gsub(" ", "-", fishery_name)
+    output_file <- paste0("qaqc_report_", clean_name, "_", Sys.Date(), ".html")
 
-    tryCatch({
-      cli_alert_info(glue::glue("Starting report generation for {fishery_name}...\n"))
+    cli_alert_info(glue("Rendering: {fishery_name}"))
 
-      #Define output file name
-      clean_name <- gsub(" ", "-", fishery_name)
-      output_file <- paste0("qaqc_report_", clean_name, "_", Sys.Date(), ".html")
+    results[[fishery_name]] <- tryCatch({
 
-      #Render Quarto document
-      # system(paste("quarto render", shQuote(quarto_file),
-      #              "--to html",
-      #              paste0("--output ", shQuote(temp_file)),
-      #              paste0("-P fishery_name=", shQuote(fishery_name))
-      # ))
+      # Copy template to tempdir , copy output to output_dir
+      temp_qmd <- file.path(tempdir(), "qaqc_script.qmd")
+      file.copy(template, temp_qmd, overwrite = TRUE)
 
-      quarto_render(
-        input = quarto_file,
-        output_format = "html",
-        output_file = output_file,
-        execute_params = list(fishery_name = fishery_name)
+      # Set wd() temporarily to tempdir() using withr, render quarto doc
+      with_dir(tempdir(), {
+        quarto_render(
+          input          = temp_qmd,
+          output_format  = "html",
+          output_file    = output_file,
+          execute_params = list(fishery_name = fishery_name),
+          quiet          = TRUE
+        )
+      })
+
+      # Copy rendered file from tempdir to output_dir
+      file.copy(
+        from      = file.path(tempdir(), output_file),
+        to        = file.path(output_dir, output_file),
+        overwrite = TRUE
       )
 
-      #define final file location, rename, and remove original copy from working directory
-      final_output_file <- file.path(output_dir, basename(output_file))
-
-      file.rename(output_file, final_output_file)
-
-      if (file.exists(output_file)) {
-        file.remove(output_file)
-      }
-
-      #call helper function to remove figures from inst/figures between each loop
-      cleanup_figures()
-
-      #print message
-      cli_alert_success(glue::glue("Rendered report for {fishery_name} to:\n{final_output_file}\n\n\n"))
+      cli_alert_success(glue("Saved: {file.path(output_dir, output_file)}"))
+      list(status = "SUCCESS", message = "Saved to output directory", error = NA)
 
     }, error = function(e) {
-      #print fail message
-      cli::cli_alert_danger(glue::glue("Failed to generate report for {fishery_name}. Error: {e$message}\n\n\n"))
+      cli_alert_danger(glue("Failed: {fishery_name} - {e$message}"))
+      list(status = "FAILED", message = NA, error = e$message)
     })
   }
-}
 
-#' cleanup_figures
-#'
-#' This is a helper function that removes all files from the inst/figures directory.
-#' As the html reports have embeded resources, this is useful for cleaning up the
-#' figures directory between each sequential report iteration.
-#' @keywords internal
-cleanup_figures <- function() {
-  figures_path <- paste0(here("inst", "figures"), "/")
+  # Console summary
+  summary_df <- data.frame(
+    fishery = names(results),
+    status  = sapply(results, `[[`, "status"),
+    message  = sapply(results, `[[`, "message"),
+    error   = sapply(results, `[[`, "error"),
+    row.names = NULL
+  )
 
-  figure_files <- list.files(figures_path, full.names = TRUE)
+  cli_rule("Render Summary")
+  print(summary_df)
 
-  if (length(figure_files) > 0) {
-    file.remove(figure_files)
-
-  }
+  invisible(summary_df)
 }
