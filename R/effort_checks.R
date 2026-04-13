@@ -17,7 +17,8 @@ effort_end.time.start.time <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = TRUE,
-      qaqc_check_type = "effort",
+      check_category = "record",
+      check_type = "effort",
       error_count = error_count,
       message = glue::glue("There are {error_count} rows where the end time is less than the start time.")
     ))
@@ -25,7 +26,8 @@ effort_end.time.start.time <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = TRUE,
-      qaqc_check_type = "effort",
+      check_category = "record",
+      check_type = "effort",
       error_count = error_count,
       message = "All end times are greater than or equal to the start times."
     ))
@@ -42,7 +44,8 @@ effort_na.location <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = TRUE,
-      qaqc_check_type = "effort",
+      check_category = "record",
+      check_type = "effort",
       error_count = error_count,
       message = glue::glue("There are {error_count} rows where the location is NULL or NA.")
     ))
@@ -50,7 +53,8 @@ effort_na.location <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = TRUE,
-      qaqc_check_type = "effort",
+      check_category = "record",
+      check_type = "effort",
       error_count = error_count,
       message = "The 'locations' field has no missing values."
     ))
@@ -67,7 +71,8 @@ effort_na.count.quantity <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = TRUE,
-      qaqc_check_type = "effort",
+      check_category = "record",
+      check_type = "effort",
       error_count = error_count,
       message = glue::glue("There are {error_count} rows where the count quantity is NULL or NA.")
     ))
@@ -75,7 +80,8 @@ effort_na.count.quantity <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = TRUE,
-      qaqc_check_type = "effort",
+      check_category = "record",
+      check_type = "effort",
       error_count = error_count,
       message = "The 'count_quantity' field has no missing values."
     ))
@@ -92,7 +98,8 @@ effort_na.count.type <- function(data) {
     return(create_results_table(
       pass = FALSE,
       critical = TRUE,
-      qaqc_check_type = "effort",
+      check_category = "record",
+      check_type = "effort",
       error_count = error_count,
       message = glue::glue("There are {error_count} rows where the count type is NULL or NA.")
     ))
@@ -100,7 +107,8 @@ effort_na.count.type <- function(data) {
     return(create_results_table(
       pass = TRUE,
       critical = TRUE,
-      qaqc_check_type = "effort",
+      check_category = "record",
+      check_type = "effort",
       error_count = error_count,
       message = "The 'count_type' field has no missing values."
     ))
