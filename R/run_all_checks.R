@@ -72,18 +72,20 @@ run_all_checks <- function(data) {
 #'
 #' @param pass logical / TRUE if the check passed, FALSE if it failed
 #' @param critical logical / TRUE if the check is critical, FALSE if it is not
-#' @param qaqc_check_type character / type of QAQC check
+#' @param check_category .
+#' @param check_type character / type of QAQC check
 #' @param error_count numeric / number of errors found for a given check
 #' @param message character / message to display in results table
 #' @returns template results table
 #' @importFrom tibble tibble
 #' @keywords internal
-create_results_table <- function(pass, critical, qaqc_check_type, error_count, message) {
+create_results_table <- function(pass, critical, check_category, check_type, error_count, message) {
 
   table <- tibble::tibble(
     pass = pass,
     critical = critical,
-    qaqc_check_type = qaqc_check_type,
+    check_category = check_category,
+    check_type = check_type,
     error_count = error_count,
     message = message
   )
