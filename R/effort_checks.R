@@ -4,6 +4,11 @@
 #'   a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
 NULL
 
+
+#' Check for effort end time before start time
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns list(result, detail)
+#' @export
 effort_end.time.start.time <- function(data) {
 
   flagged <- data$effort |>
@@ -24,13 +29,16 @@ effort_end.time.start.time <- function(data) {
     flagged |>
       dplyr::select("event_date", "water_body", "location", "count_sequence",
                     "count_type", "section_num", "effort_start_time",
-                    "effort_end_time", "fishapps_event_link")
+                    "effort_end_time", "creel_event_id")
   }
 
   list(result = result, detail = detail)
 }
 
-# 2 - Effort location is NULL or NA
+#' Check for missing effort location
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns list(result, detail)
+#' @export
 effort_na.location <- function(data) {
 
   flagged <- data$effort |>
@@ -50,13 +58,16 @@ effort_na.location <- function(data) {
   detail <- if (nrow(flagged) > 0) {
     flagged |>
       dplyr::select("event_date", "water_body", "location", "section_num",
-                    "count_type", "count_sequence", "fishapps_event_link")
+                    "count_type", "count_sequence", "creel_event_id")
   }
 
   list(result = result, detail = detail)
 }
 
-# 3 - Effort count quantity is NULL or NA
+#' Check for missing count_quantity values
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns list(result, detail)
+#' @export
 effort_na.count.quantity <- function(data) {
 
   flagged <- data$effort |>
@@ -76,13 +87,16 @@ effort_na.count.quantity <- function(data) {
   detail <- if (nrow(flagged) > 0) {
     flagged |>
       dplyr::select("event_date", "water_body", "location", "section_num",
-                    "count_type", "count_quantity", "fishapps_event_link")
+                    "count_type", "count_quantity", "creel_event_id")
   }
 
   list(result = result, detail = detail)
 }
 
-# 4 - Effort count type is NULL or NA
+#' Check for missing count_quantity values
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns list(result, detail)
+#' @export
 effort_na.count.type <- function(data) {
 
   flagged <- data$effort |>
@@ -102,7 +116,7 @@ effort_na.count.type <- function(data) {
   detail <- if (nrow(flagged) > 0) {
     flagged |>
       dplyr::select("event_date", "water_body", "location", "section_num",
-                    "count_type", "count_sequence", "fishapps_event_link")
+                    "count_type", "count_sequence", "creel_event_id")
   }
 
   list(result = result, detail = detail)
