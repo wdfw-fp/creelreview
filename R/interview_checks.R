@@ -1,377 +1,324 @@
-# 1, Missing trip status, all interviews should have a trip status of either "Incomplete" or "Complete"
+#' @name interview_checks
+#' @title Angler interview QAQC checks
+#' @description Each function returns `list(result, detail)` where `result` is
+#'   a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+NULL
+
 interview_na.trip.status <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(is.na(.data$trip_status))
 
-  interview <- data$interview
-  error_count <- sum(is.na(interview$trip_status))
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} interviews with missing trip_status.")
+    else "All trip statuses present."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} missing trip statuses in the interviews.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All trip statuses are present in all interviews."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "section_num",
+                    "interview_number", "trip_status", "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 2, Fishing end time > interview time
 interview_end.time.interview.time <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(.data$fishing_end_time > .data$interview_time)
 
-  interview <- data$interview
-  error_count <- sum(interview$fishing_end_time > interview$interview_time, na.rm = TRUE)
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} interviews where fishing end time > interview time.")
+    else "All fishing end times are at or before the interview time."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews where the fishing end time is after the interview time.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All fishing end times are before the interview time."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "interview_number",
+                    "fishing_end_time", "interview_time", "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 3, Fishing start time > fishing end time
 interview_start.time.end.time <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(.data$fishing_start_time > .data$fishing_end_time)
 
-  interview <- data$interview
-  error_count <- sum(interview$fishing_start_time > interview$fishing_end_time, na.rm = TRUE)
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} interviews where start time > end time.")
+    else "All fishing start times are before the end time."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews where the fishing start time is after the fishing end time.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All fishing start times are before the fishing end time."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "interview_number",
+                    "fishing_start_time", "fishing_end_time", "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 4, Trailer Count > Vehicle Count
 interview_trailer.count.vehicle.count <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(.data$trailer_count > .data$vehicle_count)
 
-  interview <- data$interview
-  error_count <- sum(interview$trailer_count > interview$vehicle_count, na.rm = TRUE)
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} interviews where trailer count > vehicle count.")
+    else "All trailer counts are \u2264 vehicle counts."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews where the trailer count is greater than the vehicle count.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All trailer counts are less than or equal to the vehicle count."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "interview_number",
+                    "trailer_count", "vehicle_count", "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 5, Angler Count > Group Count
 interview_angler.count.group.count <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(.data$angler_count > .data$total_group_count)
 
-  interview <- data$interview
-  error_count <- sum(interview$angler_count > interview$total_group_count, na.rm = TRUE)
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} interviews where angler count > group count.")
+    else "All angler counts are \u2264 total group counts."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews where the angler count is greater than the group count.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All angler counts are less than or equal to the group count."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "interview_number",
+                    "angler_count", "total_group_count", "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 6, Vehicle Count > Group Count
 interview_vehicle.count.group.count <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(.data$vehicle_count > .data$total_group_count)
 
-  interview <- data$interview
-  error_count <- sum(interview$vehicle_count > interview$total_group_count, na.rm = TRUE)
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} interviews where vehicle count > group count.")
+    else "All vehicle counts are \u2264 total group counts."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews where the vehicle count is greater than the group count.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All vehicle counts are less than or equal to the group count."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "interview_number",
+                    "vehicle_count", "total_group_count", "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 7, NA in previously_interviewed column
 interview_na.previously.interviewed <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(is.na(.data$previously_interviewed))
 
-  interview <- data$interview
-  error_count <- sum(is.na(interview$previously_interviewed))
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} missing previously_interviewed values.")
+    else "All previously_interviewed values present."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} missing values in the previously_interviewed column.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All previously_interviewed values are present."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "section_num",
+                    "interview_number", "previously_interviewed",
+                    "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 8, NA fishing_location column
 interview_na.fishing.location <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(is.na(.data$fishing_location))
 
-  interview <- data$interview
-  error_count <- sum(is.na(interview$fishing_location))
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} missing fishing_location values.")
+    else "All fishing_location values present."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} missing values in the fishing_location column.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All fishing_location values are present."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "section_num",
+                    "interview_number", "fishing_location",
+                    "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 9, Incomplete trip status with a fishing end time
 interview_incomplete.trip.fishing.end.time <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(.data$trip_status == "Incomplete" & !is.na(.data$fishing_end_time))
 
-  interview <- data$interview
-  error_count <- sum(interview$trip_status == "Incomplete" & !is.na(interview$fishing_end_time))
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} incomplete trips with a fishing end time.")
+    else "No incomplete trips have a fishing end time."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews with an incomplete trip status and a fishing end time.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All interviews with an incomplete trip status do not have a fishing end time."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "interview_number",
+                    "trip_status", "fishing_start_time", "fishing_end_time",
+                    "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 10, Fishing end time before fishing start time
 interview_end.time.before.start.time <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(.data$fishing_end_time < .data$fishing_start_time)
 
-  interview <- data$interview
-  error_count <- sum(interview$fishing_end_time < interview$fishing_start_time, na.rm = TRUE)
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} interviews where end time is before start time.")
+    else "All fishing end times are after the start time."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews where the fishing end time is before the fishing start time.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All fishing end times are after the fishing start time."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "interview_number",
+                    "fishing_start_time", "fishing_end_time",
+                    "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 11, Interview time before fishing start time
 interview_interview.before.fishing.start.time <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(.data$interview_time < .data$fishing_start_time)
 
-  interview <- data$interview
-  error_count <- sum(interview$interview_time < interview$fishing_start_time, na.rm = TRUE)
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} interviews where interview time is before fishing start.")
+    else "All interview times are after the fishing start time."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews where the interview time is before the fishing start time.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All interview times are after the fishing start time."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "interview_number",
+                    "interview_time", "fishing_start_time",
+                    "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 12, Complete trip status with a missing fishing end time
-interview_complete.trip.missing.end.time <- function(data) {
-
-  interview <- data$interview
-  error_count <- sum(interview$trip_status == "Complete" & is.na(interview$fishing_end_time))
-
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} interviews with a complete trip status and a missing fishing end time.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All interviews with a complete trip status have a fishing end time."
-    ))
-  }
-}
-
-# 13, NA target_species
 interview_na.target.species <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(is.na(.data$target_species))
 
-  interview <- data$interview
-  error_count <- sum(is.na(interview$target_species))
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} missing target_species values.")
+    else "All target_species values present."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} missing values in the target_species column.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All target_species values are present."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "section_num",
+                    "interview_number", "target_species",
+                    "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
 
-# 14, NA boat_used
 interview_na.boat.used <- function(data) {
+  flagged <- data$interview |>
+    dplyr::filter(is.na(.data$boat_used))
 
-  interview <- data$interview
-  error_count <- sum(is.na(interview$boat_used))
+  result <- create_results_table(
+    pass           = nrow(flagged) == 0,
+    critical       = FALSE,
+    check_category = "record",
+    check_type     = "interview",
+    error_count    = nrow(flagged),
+    message        = if (nrow(flagged) > 0)
+      glue::glue("{nrow(flagged)} missing boat_used values.")
+    else "All boat_used values present."
+  )
 
-  if (error_count > 0) {
-    return(create_results_table(
-      pass = FALSE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = glue::glue("There are {error_count} missing values in the boat_used column.")
-    ))
-  } else {
-    return(create_results_table(
-      pass = TRUE,
-      critical = FALSE,
-      check_category = "record",
-      check_type = "interview",
-      error_count = error_count,
-      message = "All boat_used values are present."
-    ))
+  detail <- if (nrow(flagged) > 0) {
+    flagged |>
+      dplyr::select("event_date", "water_body", "section_num",
+                    "interview_number", "boat_used",
+                    "creel_event_id")
   }
+
+  list(result = result, detail = detail)
 }
