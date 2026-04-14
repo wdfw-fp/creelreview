@@ -15,17 +15,21 @@ Imports:
     dplyr,
     tibble,
     quarto,
-    withr
+    withr,
+    rlang,
+    purrr,
+    creelutils
+Suggests: 
+    knitr,
+    rmarkdown,
+    gt,
+    testthat (>= 3.0.0)
 Remotes:
     wdfw-fp/creelutils
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 LazyData: true
-Suggests: 
-    knitr,
-    rmarkdown,
-    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 URL: https://wdfw-fp.github.io/creelreview
 BugReports: https://github.com/wdfw-fp/creelreview/issues

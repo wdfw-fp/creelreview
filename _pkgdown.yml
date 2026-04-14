@@ -7,20 +7,34 @@ development:
   mode: auto
 
 reference:
-- title: "High level functions"
+- title: "Creel Data Asesssment"
   desc: >
     The primary methods of performing QAQC
   contents:
     - run_all_checks
-    - get_grading
-- title: "Low level functions"
+    - assess_datasets
+    - format_assessment_gt
+
+- title: "QAQC Report Generation"
   desc: >
-    Process-specific functions typically called by high level functions
-  contents:
-    - effort_end.time.start.time
-- title: "Other"
-  desc: >
-    placeholder text
+    Render standardized HTML review reports.
   contents:
     - generate_report
+
+- title: "Angler Interview Checks"
+  desc: >
+    Record-level checks on interview data. Each returns `list(result, detail)`.
+  contents:
+    - starts_with("interview_")
+
+- title: "Effort Checks"
+  desc: >
+    Record-level checks on effort data. Each returns `list(result, detail)`.
+  contents:
+    - starts_with("effort_")
+
+- title: "Example data"
+  desc: >
+    Bundled example dataset for testing and demonstration.
+  contents:
     - example_dataset
