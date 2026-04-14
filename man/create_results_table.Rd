@@ -2,25 +2,36 @@
 % Please edit documentation in R/run_all_checks.R
 \name{create_results_table}
 \alias{create_results_table}
-\title{create_results_table}
+\title{Create a standardized results row for a QAQC check}
 \usage{
-create_results_table(pass, critical, qaqc_check_type, error_count, message)
+create_results_table(
+  pass,
+  critical,
+  check_category,
+  check_type,
+  error_count,
+  message
+)
 }
 \arguments{
-\item{pass}{logical / TRUE if the check passed, FALSE if it failed}
+\item{pass}{Logical. \code{TRUE} if the check passed.}
 
-\item{critical}{logical / TRUE if the check is critical, FALSE if it is not}
+\item{critical}{Logical. \code{TRUE} if failure is critical (red), \code{FALSE} for
+non-critical (yellow).}
 
-\item{qaqc_check_type}{character / type of QAQC check}
+\item{check_category}{\code{"record"} or \code{"structural"}.}
 
-\item{error_count}{numeric / number of errors found for a given check}
+\item{check_type}{Domain: \code{"interview"}, \code{"catch"}, \code{"effort"},
+\code{"effort_census"}, \code{"effort_index"}, \code{"completeness"}, \code{"fishery_config"}.}
 
-\item{message}{character / message to display in results table}
+\item{error_count}{Integer. Number of errors found.}
+
+\item{message}{Character. Human-readable result description.}
 }
 \value{
-template results table
+One-row tibble.
 }
 \description{
-This helper function creates a results table for each QAQC check.
+Create a standardized results row for a QAQC check
 }
 \keyword{internal}

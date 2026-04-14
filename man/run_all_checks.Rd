@@ -2,16 +2,24 @@
 % Please edit documentation in R/run_all_checks.R
 \name{run_all_checks}
 \alias{run_all_checks}
-\title{run_all_checks}
+\title{Run all registered QAQC and structural checks}
 \usage{
-run_all_checks(data)
+run_all_checks(data, conn)
 }
 \arguments{
-\item{data}{creel data}
+\item{data}{List of creel data components as returned by
+\code{\link[creelutils:fetch_dwg]{creelutils::fetch_dwg()}}.}
+
+\item{conn}{Database connection from \code{\link[creelutils:connect_creel_db]{creelutils::connect_creel_db()}}.}
 }
 \value{
-results table
+Named list with two elements:
+\itemize{
+\item \code{summary}: tibble with one row per check (pass, critical, status_color, etc.)
+\item \code{checks}: named list of full check outputs, each \code{list(summary, checks)}
+}
 }
 \description{
-run_all_checks
+Runs every registered check function against a creel dataset and returns
+a summary table with stoplight status colors alongside the full check outputs.
 }
