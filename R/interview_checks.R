@@ -1,9 +1,8 @@
-#' @name interview_checks
-#' @title Angler interview QAQC checks
-#' @description Each function returns `list(result, detail)` where `result` is
+#' Check for missing trip_status
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
 #'   a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
-NULL
-
+#' @export
 interview_na.trip.status <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(is.na(.data$trip_status))
@@ -28,6 +27,12 @@ interview_na.trip.status <- function(data) {
   list(result = result, detail = detail)
 }
 
+
+#' Check for fishing end time after interview time
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where result is
+#'   a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_end.time.interview.time <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(.data$fishing_end_time > .data$interview_time)
@@ -52,6 +57,11 @@ interview_end.time.interview.time <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for fishing start time after end time
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_start.time.end.time <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(.data$fishing_start_time > .data$fishing_end_time)
@@ -76,6 +86,11 @@ interview_start.time.end.time <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for trailer count exceeding vehicle count
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_trailer.count.vehicle.count <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(.data$trailer_count > .data$vehicle_count)
@@ -100,6 +115,11 @@ interview_trailer.count.vehicle.count <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for angler count exceeding group count
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_angler.count.group.count <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(.data$angler_count > .data$total_group_count)
@@ -124,6 +144,11 @@ interview_angler.count.group.count <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for vehicle count exceeding group count
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'   a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_vehicle.count.group.count <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(.data$vehicle_count > .data$total_group_count)
@@ -148,6 +173,11 @@ interview_vehicle.count.group.count <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for missing previously_interviewed values
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_na.previously.interviewed <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(is.na(.data$previously_interviewed))
@@ -173,6 +203,11 @@ interview_na.previously.interviewed <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for missing fishing_location values
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_na.fishing.location <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(is.na(.data$fishing_location))
@@ -198,6 +233,11 @@ interview_na.fishing.location <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for incomplete trips with a fishing end time
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_incomplete.trip.fishing.end.time <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(.data$trip_status == "Incomplete" & !is.na(.data$fishing_end_time))
@@ -223,6 +263,11 @@ interview_incomplete.trip.fishing.end.time <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for interview time before fishing start time
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_end.time.before.start.time <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(.data$fishing_end_time < .data$fishing_start_time)
@@ -248,6 +293,11 @@ interview_end.time.before.start.time <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' DUPE??
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_interview.before.fishing.start.time <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(.data$interview_time < .data$fishing_start_time)
@@ -273,6 +323,11 @@ interview_interview.before.fishing.start.time <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for missing target_species values
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_na.target.species <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(is.na(.data$target_species))
@@ -298,6 +353,11 @@ interview_na.target.species <- function(data) {
   list(result = result, detail = detail)
 }
 
+#' Check for missing boat_used values
+#' @param data List of creel data from [creelutils::fetch_dwg()].
+#' @returns `list(result, detail)` where `result` is
+#'    a one-row summary tibble and `detail` is flagged records or `NULL` on pass.
+#' @export
 interview_na.boat.used <- function(data) {
   flagged <- data$interview |>
     dplyr::filter(is.na(.data$boat_used))
