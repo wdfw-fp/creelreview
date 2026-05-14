@@ -28,8 +28,8 @@ Remotes:
     wdfw-fp/creelutils
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 LazyData: true
 Config/testthat/edition: 3
 URL: https://wdfw-fp.github.io/creelreview
 BugReports: https://github.com/wdfw-fp/creelreview/issues
+Config/roxygen2/version: 8.0.0

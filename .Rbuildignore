@@ -4,3 +4,5 @@
 ^README\.md$
 ^_pkgdown\.yml$
 ^qaqc_script\.qmd$
+^\.positai$
+^\.claude$
